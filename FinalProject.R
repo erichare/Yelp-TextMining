@@ -5,6 +5,7 @@
 library(rjson)
 library(plyr)
 library(maps)
+library(tm)
 # library(RJSONIO)
 
 processData <- function(json) {
@@ -86,7 +87,7 @@ reviews.data$user_id = as.character(reviews.data$user_id)
 reviews.data$review_id = as.character(reviews.data$review_id)
 reviews.data$business_id = as.character(reviews.data$business_id)
 reviews.data$text = as.character(reviews.data$text)
-library(tm)
+
 m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
 t <- readTabular(mapping = m)
 corpus <- Corpus(DataframeSource(reviews.data), readerControl = list(reader = t))
