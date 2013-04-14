@@ -6,6 +6,7 @@ library(rjson)
 library(plyr)
 library(maps)
 library(tm)
+library(e1071)
 # library(RJSONIO)
 
 processData <- function(json) {
@@ -91,6 +92,21 @@ reviews.data$text = as.character(reviews.data$text)
 m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
 t <- readTabular(mapping = m)
 corpus <- Corpus(DataframeSource(reviews.data), readerControl = list(reader = t))
-tdm = TermDocumentMatrix(corpus)
+#tdm = TermDocumentMatrix(corpus)
 
-tdm$dimnames$Terms[tdm[,1]$i]
+
+c2 = tm_map(corpus, stripWhitespace)
+c2 = tm_map(c2, removePunctuation)
+c2 = tm_map(c2, tolower)
+c2 = tm_map(c2, removeWords, stopwords("english"))
+c2 = tm_map(c2, removeNumbers)
+c2 = tm_map(c2, stemDocument) #needs weka
+inspect(tdm2[1:5,100:105])
+
+tdm2 = TermDocumentMatrix(c2)
+tdm3 = TermDocumentMatrix(c2, control = list(bounds=list(global = c(10,Inf), local = c(1, Inf))))
+inspect(tdm3[120:125,100:105])
+
+dtm = as.DocumentTermMatrix(tdm3)
+
+dimtdm$dimnames$Terms[tdm[,1]$i]
