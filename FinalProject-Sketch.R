@@ -1,22 +1,9 @@
-\documentclass[11pt]{article}
 
-\usepackage[margin=0.75in]{geometry}
-
-\begin{document}
-<<concordance, echo=FALSE>>=
+## @knitr concordance, echo=FALSE
 opts_chunk$set(concordance=TRUE)
-@
 
-\setlength{\parskip}{1ex}
-\setlength{\parindent}{0pt}
 
-\title{STAT 511 Final Project (Initial Sketch)}
-\author{Jim Curro, Eric Hare, Alex Shum}
-\date{Apr. 15, 2013}
-
-\maketitle
-
-<<LoadLibraries, echo=FALSE, cache=FALSE, message=FALSE>>=
+## @knitr LoadLibraries, echo=FALSE, cache=FALSE, message=FALSE
     ## Libraries
     library(rjson)
     library(plyr)
@@ -25,14 +12,9 @@ opts_chunk$set(concordance=TRUE)
     library(ggplot2)
     library(RgoogleMaps)
     library(xtable)
-@
 
-\section*{Introduction}
-This is a sketch of our results thus far.  We have made progress on our two biggest goals with the dataset.  First, we've conducted an EDA on the data and discovered some interesting things, which is summarised in section two.  Second, we've used a Term Document Matrix to condense the text of the reviews into a manageable format.  We also have fit an initial SVM to the data in order to predict which reviews have at least one useful vote.  These results are summarised in section three.
 
-\section*{Exploratory Data Analysis}
-
-<<DataProcessing, echo=FALSE, cache=TRUE>>=
+## @knitr DataProcessing, echo=FALSE, cache=TRUE
     processData <- function(json) {
         lines <- readLines(json)
         json.lines <- lapply(1:length(lines), function(x) { fromJSON(lines[x])})
@@ -98,17 +80,13 @@ This is a sketch of our results thus far.  We have made progress on our two bigg
     business.data$latitude <- as.numeric(as.character(business.data$latitude))
     
     reviews.data$text <- as.character(reviews.data$text)
-@
 
-Figure X displays the number of useful votes against the number of cool votes in blue, and the number of useful votes against the number of funny votes in red.  It can be seen that while both cool and funny votes are great predictors of useful votes, the slope is larger for funny.  In other words, we would expect that the reviews with a set number of funny votes would tend to have more useful votes than those with the same set number of cool votes.
 
-<<UsefulFunny, echo=FALSE, out.height='4in', out.width='8in', fig.show='hold'>>=
+## @knitr UsefulFunny, echo=FALSE, out.height='4in', out.width='8in', fig.show='hold'
 qplot(cool, useful, data = user.data, colour = I("blue")) + geom_point(aes(x = funny, y = useful), colour = I("red"))
-@
 
-Table X shows the top 10 cities by number of checkins in the database.  It also shows the total number of reviews for all businesses in that city, as well as the percentage of reviews over checkins.  It can be seen that for the biggest cities in the database, there is a very uniform number of about .27 reviews per checkin.
 
-<<CityData, echo=FALSE, results='asis'>>=
+## @knitr CityData, echo=FALSE, results='asis'
 business.data$full_address <- as.character(business.data$full_address)
 
 business.data$zip <- substring(business.data$full_address, nchar(business.data$full_address) - 5, nchar(business.data$full_address))
@@ -122,26 +100,21 @@ city.data <- city.data[with(city.data, order(-checkins)), ]
 city.data$percentage <- city.data$reviews/city.data$checkins
 
 print(xtable(city.data[1:10,]), include.rownames = FALSE, table.placement = '!h')
-@
 
-Figure X shows boxplots of the number of checkins to each business by the average star rating of that business.  It can be observed that businesses with about a four star rating tend to have the most checkins, but five star rating businesses actually have fewer.  This may be either due to the fact that businesses with such a high rating have fewer total reviews, or they are more expensive and less likely to have a high number of customers.
 
-<<CheckinsBoxplot, echo=FALSE, out.height='5in', out.width='8in', fig.show='hold'>>=
+## @knitr CheckinsBoxplot, echo=FALSE, out.height='5in', out.width='8in', fig.show='hold'
 qplot(stars.f, log(checkins), data = business.data, geom = "boxplot", colour = stars.f)
-@
 
-Table X displays the top ten users by the total number of useful votes divided by the total number of reviews for that user.  We have selected only users who have made at least 100 reviews.  It can be seen that...
 
-<<UsefulTable, echo=FALSE, results='asis'>>=
+## @knitr UsefulTable, echo=FALSE, results='asis'
 use = subset(user.data,review_count>100)
 use$good = use$useful / use$review
 use = use[with(use,order(-good)),]
 
 print(xtable(use[1:10, c(1:3, 5:7, 9)]), include.rownames = FALSE, table.placement = '!h')
-@
 
-\section*{TDM}
-<<TDMStuff, echo=FALSE, cache=TRUE>>=
+
+## @knitr TDMStuff, echo=FALSE, cache=TRUE
 #     reviews.data$user_id = as.character(reviews.data$user_id)
 #     reviews.data$review_id = as.character(reviews.data$review_id)
 #     reviews.data$business_id = as.character(reviews.data$business_id)
@@ -168,6 +141,5 @@ print(xtable(use[1:10, c(1:3, 5:7, 9)]), include.rownames = FALSE, table.placeme
 #     dtm = as.DocumentTermMatrix(tdm3)
 #     
 #     dimtdm$dimnames$Terms[tdm[,1]$i]
-@
 
-\end{document}
+
