@@ -1,6 +1,6 @@
-\documentclass[11pt]{article}
+\documentclass[12pt]{article}
 
-\usepackage[margin=0.75in]{geometry}
+\usepackage[margin=1.25in]{geometry}
 
 \begin{document}
 <<concordance, echo=FALSE>>=
@@ -23,7 +23,6 @@ opts_chunk$set(concordance=TRUE)
     library(maps)
     library(tm)
     library(ggplot2)
-    library(RgoogleMaps)
     library(xtable)
 @
 
@@ -102,7 +101,7 @@ This is a sketch of our results thus far.  We have made progress on our two bigg
 
 Figure X displays the number of useful votes against the number of cool votes in blue, and the number of useful votes against the number of funny votes in red.  It can be seen that while both cool and funny votes are great predictors of useful votes, the slope is larger for funny.  In other words, we would expect that the reviews with a set number of funny votes would tend to have more useful votes than those with the same set number of cool votes.
 
-<<UsefulFunny, echo=FALSE, out.height='4in', out.width='8in', fig.show='hold'>>=
+<<UsefulFunny, echo=FALSE, out.height='5in', out.width='5in', fig.show='hold', fig.align='center'>>=
 qplot(cool, useful, data = user.data, colour = I("blue")) + geom_point(aes(x = funny, y = useful), colour = I("red"))
 @
 
@@ -126,7 +125,7 @@ print(xtable(city.data[1:10,]), include.rownames = FALSE, table.placement = '!h'
 
 Figure X shows boxplots of the number of checkins to each business by the average star rating of that business.  It can be observed that businesses with about a four star rating tend to have the most checkins, but five star rating businesses actually have fewer.  This may be either due to the fact that businesses with such a high rating have fewer total reviews, or they are more expensive and less likely to have a high number of customers.
 
-<<CheckinsBoxplot, echo=FALSE, out.height='5in', out.width='8in', fig.show='hold'>>=
+<<CheckinsBoxplot, echo=FALSE, out.height='5in', out.width='5in', fig.show='hold', fig.align='center'>>=
 qplot(stars.f, log(checkins), data = business.data, geom = "boxplot", colour = stars.f)
 @
 
@@ -145,26 +144,26 @@ The review data provided by Yelp was provided without much preprocessing.  Start
 
 
 <<TDMStuff, echo=FALSE, cache=TRUE>>=
-     reviews.data$user_id = as.character(reviews.data$user_id)
-     reviews.data$review_id = as.character(reviews.data$review_id)
-     reviews.data$business_id = as.character(reviews.data$business_id)
-     reviews.data$text = as.character(reviews.data$text)
-     
-     m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
-     t <- readTabular(mapping = m)
-     corpus <- Corpus(DataframeSource(reviews.data), readerControl = list(reader = t))
-     
-     c2 = tm_map(corpus, stripWhitespace)
-     c2 = tm_map(c2, removePunctuation)
-     c2 = tm_map(c2, tolower)
-     c2 = tm_map(c2, removeWords, stopwords("english"))
-     c2 = tm_map(c2, removeNumbers)
-     #c2 = tm_map(c2, stemDocument) #needs weka
-
-     tdm3 = TermDocumentMatrix(c2, control = list(bounds=list(global = c(10,Inf), local = c(1, Inf))))
-     
-     dtm = as.DocumentTermMatrix(tdm3)
-     print(xtable(inspect(dtm[1:10,1:10])))
+#      reviews.data$user_id = as.character(reviews.data$user_id)
+#      reviews.data$review_id = as.character(reviews.data$review_id)
+#      reviews.data$business_id = as.character(reviews.data$business_id)
+#      reviews.data$text = as.character(reviews.data$text)
+#      
+#      m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
+#      t <- readTabular(mapping = m)
+#      corpus <- Corpus(DataframeSource(reviews.data), readerControl = list(reader = t))
+#      
+#      c2 = tm_map(corpus, stripWhitespace)
+#      c2 = tm_map(c2, removePunctuation)
+#      c2 = tm_map(c2, tolower)
+#      c2 = tm_map(c2, removeWords, stopwords("english"))
+#      c2 = tm_map(c2, removeNumbers)
+#      #c2 = tm_map(c2, stemDocument) #needs weka
+# 
+#      tdm3 = TermDocumentMatrix(c2, control = list(bounds=list(global = c(10,Inf), local = c(1, Inf))))
+#      
+#      dtm = as.DocumentTermMatrix(tdm3)
+#      print(xtable(inspect(dtm[1:10,1:10])))
 @
 
 
