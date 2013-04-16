@@ -10,7 +10,6 @@ opts_chunk$set(concordance=TRUE)
     library(maps)
     library(tm)
     library(ggplot2)
-    library(RgoogleMaps)
     library(xtable)
 
 
@@ -82,7 +81,7 @@ opts_chunk$set(concordance=TRUE)
     reviews.data$text <- as.character(reviews.data$text)
 
 
-## @knitr UsefulFunny, echo=FALSE, out.height='4in', out.width='8in', fig.show='hold'
+## @knitr UsefulFunny, echo=FALSE, out.height='5in', out.width='5in', fig.show='hold', fig.align='center'
 qplot(cool, useful, data = user.data, colour = I("blue")) + geom_point(aes(x = funny, y = useful), colour = I("red"))
 
 
@@ -102,7 +101,7 @@ city.data$percentage <- city.data$reviews/city.data$checkins
 print(xtable(city.data[1:10,]), include.rownames = FALSE, table.placement = '!h')
 
 
-## @knitr CheckinsBoxplot, echo=FALSE, out.height='5in', out.width='8in', fig.show='hold'
+## @knitr CheckinsBoxplot, echo=FALSE, out.height='5in', out.width='5in', fig.show='hold', fig.align='center'
 qplot(stars.f, log(checkins), data = business.data, geom = "boxplot", colour = stars.f)
 
 
@@ -115,31 +114,30 @@ print(xtable(use[1:10, c(1:3, 5:7, 9)]), include.rownames = FALSE, table.placeme
 
 
 ## @knitr TDMStuff, echo=FALSE, cache=TRUE
-#     reviews.data$user_id = as.character(reviews.data$user_id)
-#     reviews.data$review_id = as.character(reviews.data$review_id)
-#     reviews.data$business_id = as.character(reviews.data$business_id)
-#     reviews.data$text = as.character(reviews.data$text)
-#     
-#     m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
-#     t <- readTabular(mapping = m)
-#     corpus <- Corpus(DataframeSource(reviews.data), readerControl = list(reader = t))
-#     #tdm = TermDocumentMatrix(corpus)
-#     
-#     
-#     c2 = tm_map(corpus, stripWhitespace)
-#     c2 = tm_map(c2, removePunctuation)
-#     c2 = tm_map(c2, tolower)
-#     c2 = tm_map(c2, removeWords, stopwords("english"))
-#     c2 = tm_map(c2, removeNumbers)
-#     c2 = tm_map(c2, stemDocument) #needs weka
-#     inspect(tdm2[1:5,100:105])
-#     
-#     tdm2 = TermDocumentMatrix(c2)
-#     tdm3 = TermDocumentMatrix(c2, control = list(bounds=list(global = c(10,Inf), local = c(1, Inf))))
-#     inspect(tdm3[120:125,100:105])
-#     
-#     dtm = as.DocumentTermMatrix(tdm3)
-#     
-#     dimtdm$dimnames$Terms[tdm[,1]$i]
+## Smaller sample of documents
+## Remove a lot of terms (which don't show up)
+## KMeans of the terms
+## http://stat.ethz.ch/R-manual/R-patched/library/utils/html/aspell.html
+
+     reviews.data$user_id = as.character(reviews.data$user_id)
+     reviews.data$review_id = as.character(reviews.data$review_id)
+     reviews.data$business_id = as.character(reviews.data$business_id)
+     reviews.data$text = as.character(reviews.data$text)
+     
+     m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
+     t <- readTabular(mapping = m)
+     corpus <- Corpus(DataframeSource(reviews.data), readerControl = list(reader = t))
+     
+     c2 = tm_map(corpus, stripWhitespace)
+     c2 = tm_map(c2, removePunctuation)
+     c2 = tm_map(c2, tolower)
+     c2 = tm_map(c2, removeWords, stopwords("english"))
+     c2 = tm_map(c2, removeNumbers)
+     #c2 = tm_map(c2, stemDocument) #needs weka
+
+     tdm3 = TermDocumentMatrix(c2, control = list(bounds=list(global = c(10,Inf), local = c(1, Inf))))
+     
+     dtm = as.DocumentTermMatrix(tdm3)
+     print(xtable(inspect(dtm[1:10,1:10])))
 
 
