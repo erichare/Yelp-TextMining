@@ -12,6 +12,7 @@ opts_chunk$set(concordance=TRUE)
     library(ggplot2)
     library(xtable)
     library(e1071)
+    library(randomForest)
 
 
 ## @knitr DataProcessing, echo=FALSE, cache=TRUE
@@ -26,8 +27,6 @@ opts_chunk$set(concordance=TRUE)
     reviews.json <- processData("yelp_training_set_review.json")
     user.json <- processData("yelp_training_set_user.json")
     
-    ## Read in json test files
-    reviews.test.json <- processData("yelp_test_set_review.json")
     
     ## Reviews Data
     ## Convert to DF
@@ -37,10 +36,7 @@ opts_chunk$set(concordance=TRUE)
     reviews.data$useful <- as.numeric(as.character(reviews.data$useful))
     reviews.data$cool <- as.numeric(as.character(reviews.data$cool))
     reviews.data$funny <- as.numeric(as.character(reviews.data$funny))
- 
-    ## Reviews Test Data
-    ## Convert to DF
-    reviews.test.data = data.frame(matrix(unlist(reviews.test.json), nrow = length(reviews.test.json), byrow = TRUE))
+    
     
     ## Business Data
     ## We need to turn "Categories" into a comma separated string
@@ -86,6 +82,10 @@ opts_chunk$set(concordance=TRUE)
     
     reviews.data$text <- as.character(reviews.data$text)
 
+    set.seed(20130421)
+    data.sample <- sample(1:nrow(reviews.data), 20000)
+    reviews.sub <- reviews.data[data.sample, ]
+
 
 ## @knitr UsefulFunny, echo=FALSE, out.height='5in', out.width='5in', fig.show='hold', fig.align='center'
 qplot(cool, useful, data = user.data, colour = I("blue")) + geom_point(aes(x = funny, y = useful), colour = I("red"))
@@ -119,44 +119,56 @@ use = use[with(use,order(-good)),]
 print(xtable(use[1:10, c(1:3, 5:7, 9)]), include.rownames = FALSE, table.placement = '!h')
 
 
-## @knitr TDMStuff, echo=FALSE, cache=TRUE
-## Smaller sample of documents
-## Remove a lot of terms (which don't show up)
-## KMeans of the terms
-## http://stat.ethz.ch/R-manual/R-patched/library/utils/html/aspell.html
+## @knitr NotAlexPlots, echo=FALSE, fig.cap='Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews'
+    user.data$frc = '<50'
+    user.data$frc[user.data$review_count > 50] = '50-200'
+    user.data$frc[user.data$review_count > 200] = '200-500'
+    user.data$frc[user.data$review_count > 500] = '500-1000'
+    user.data$frc[user.data$review_count > 1000] = '>1000'
+    qplot(data=user.data,average_stars,useful,color = frc)
 
 
-#mapping function for corpus
-m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
-t <- readTabular(mapping = m)
+## @knitr SummaryTable, echo=FALSE, results='asis', cache=TRUE
+    reviews.sub$numChar <- sapply(reviews.sub$text, nchar)
+    reviews.sub$numCap <- sapply(reviews.sub$text, function(x) { length(grep("[A-Z]", strsplit(as.character(x), split = "")[[1]])) / (nchar(x) + 1)})
+    reviews.sub$numPunc <- sapply(reviews.sub$text, function(x) { length(grep("[^a-zA-Z ]", strsplit(as.character(x), split = "")[[1]])) / (nchar(x) + 1)})
+    reviews.sub$numPar <- sapply(reviews.sub$text, function(x) { length(grep("\n", strsplit(as.character(x), split = "")[[1]])) / (nchar(x) + 1)})
 
-#subset dataset
-train = sample(1:nrow(reviews.data),20000)
 
-#create and clean corpus
-corpus <- Corpus(DataframeSource(reviews.data[train,]), readerControl = list(reader = t))
-corpus = tm_map(corpus, stripWhitespace)
-corpus = tm_map(corpus, removePunctuation)
-corpus = tm_map(corpus, tolower)
-corpus = tm_map(corpus, removeWords, stopwords("english"))
-corpus = tm_map(corpus, removeNumbers)
-corpus = tm_map(corpus, stemDocument) #needs weka
+    important.words <- read.csv("m.csv")
+    reviews.sub$hasDont <- sapply(reviews.sub$text, function(x) { length(grep(" don'*t ", tolower(as.character(x)))) > 0})
+    reviews.sub$hasTime <- sapply(reviews.sub$text, function(x) { length(grep(" time[sd]* ", tolower(as.character(x)))) > 0})
+    
+    reviews.sub$useful_bin <- reviews.sub$useful > 0
+    summary.sub <- ddply(reviews.sub, .(useful_bin), summarise, numChar = mean(numChar), numCap = 100 * mean(numCap), numPunc = 100 * mean(numPunc), numPar = 100 * mean(numPar), hasDont = mean(hasDont), hasTime = mean(hasTime))
 
-#Term document matrix
-tdm = TermDocumentMatrix(corpus, control = list(bounds=list(global = c(10,Inf), local = c(1, Inf))))
-dtm = as.DocumentTermMatrix(tdm)
+    print(xtable(summary.sub), table.placement = '!h')
 
-#look through term document matrix
-findFreqTerms(dtm, 15000)
 
-#possible response variables
-stars = reviews.data$stars
-funny = reviews.data$funny
-useful = reviews.data[train,]$useful > 0
-cool = reviews.data$cool
+## @knitr RandomForest, echo=FALSE, results='asis', cache=TRUE
+    classError <- function(table) {
+        cls1 <- (table[1,2] / (table[1,2] + table[1,1]))
+        cls2 <- (table[2,1] / (table[2,2] + table[2,1]))
+        cat(paste("Not Useful:", cls1, "\n"))
+        cat(paste("Useful:", cls2, "\n"))
+        cat(paste("Total:", mean(c(cls1, cls2)), "\n"))
+    }
 
-#convert to normal matrix
-matrix.dtm = inspect(dtm)
+    reviews.train <- reviews.sub[1:18000, ]
+    reviews.test <- reviews.sub[18001:20000, -c(1:3, ncol(reviews.sub))]
+    reviews.test.truth <- reviews.sub[18001:20000, ncol(reviews.sub)]
 
-#classifiers
-m = svm(useful ~ matrix.dtm)
+    reviews.rf <- randomForest(factor(useful_bin) ~ stars+numChar+numCap+numPunc+numPar+hasDont+hasTime, data = reviews.train, importance = TRUE, ntree = 1000)
+
+    print(xtable(reviews.rf$importance), table.placement = '!h')
+
+
+## @knitr SVM, echo=FALSE, results='asis'
+    reviews.svm <- svm(factor(useful_bin) ~ numChar+numPar+numPunc, data = reviews.train, kernel = "linear")
+
+    predict.svm <- predict(reviews.svm, reviews.test)
+    #classError(table(predict.svm, reviews.test.truth))
+
+    print(xtable(table(predict.svm, reviews.test.truth)), table.placement = '!h')
+
+

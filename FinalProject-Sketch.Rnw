@@ -24,12 +24,23 @@ opts_chunk$set(concordance=TRUE)
     library(tm)
     library(ggplot2)
     library(xtable)
+    library(e1071)
+    library(randomForest)
 @
 
 \section*{Introduction}
-This is a sketch of our results thus far.  We have made progress on our two biggest goals with the dataset.  First, we've conducted an EDA on the data and discovered some interesting things, which is summarised in section two.  Second, we've done some preprocessing on the review text data and have built a term document matrix.  We are working on training a classifier using the term document matrix but are having a few issues with the size of the dataset.  A summary of our progress on building a classifier is in section three. 
+The dataset that we have is reviews of all the different businesses written by yelp users in the Phoenix, Arizona metropolitan area in the time frame of January 13-March 12 in 2013. Our analysis is using the reviews given to us and identify which reviews were classified as useful based on only the number of stars the user gave the business, the total number of reviews by the user, the average star given by the user, and the text data of the review. Our initial analysis plan is using the text data given to us and...
 
-\section*{Exploratory Data Analysis}
+\section*{Data}
+The data has been broken into 3 main datasets business.json, user.json, and reviews.json.
+
+business.json has information for every business in the Phoenix area that yelp has recorded and includes the following variables (name of business, business id, address, type of business, \# of reviews, \# of checkins, \# of stars).  Because of the aim of our study the business dataset will be used as an initial data analysis to examine the differences between businesses and try to identify any potential concerns in the data.  Concerns we will be aware of include an employee from the business giving the business many “false” positive reviews of a business.  Also we can use this data to identify differences among businesses and analyze businesses that have a high percentage of reviews per check in.
+
+user.json has all of the different information for each user that yelp keeps track of.  Within this dataset we have for each user the variables (name of user, user id, \# of funny reviews, \# of useful reviews, \# of cool reviews, \# average stars, total \# reviews).  Different from the business.json data there are some important variables in this dataset that is given in the test set that we can use to better our analysis of useful reviews.  By looking at the total number of reviews the user has and their average star count possibly we can identify a trend with these two variables and see how it pertains to predicting whether the users reviews are classified as useful or not.  There are also other variables given in this dataset that we can use to further explore our data that is given, however those will not be useful in our final analysis of predicting useful reviews.
+
+ reviews.json is our primary dataset for predicting whether a review is useful or not because it has every review recorded and all of the different information recorded by yelp for each review.  These variables include (review id, user id, business id, \# votes funny, \# votes useful, \# votes cool, \# stars given, date of review, text).  Based on the goals of our study we will only be concerned with whether the review was useful, the stars given by the user, and the text data to identify the unique aspects of a review that others find to be useful.
+
+\section*{Initial Data Analysis}
 
 <<DataProcessing, echo=FALSE, cache=TRUE>>=
     processData <- function(json) {
@@ -97,6 +108,10 @@ This is a sketch of our results thus far.  We have made progress on our two bigg
     business.data$latitude <- as.numeric(as.character(business.data$latitude))
     
     reviews.data$text <- as.character(reviews.data$text)
+
+    set.seed(20130421)
+    data.sample <- sample(1:nrow(reviews.data), 20000)
+    reviews.sub <- reviews.data[data.sample, ]
 @
 
 Figure X displays the number of useful votes against the number of cool votes in blue, and the number of useful votes against the number of funny votes in red.  It can be seen that while both cool and funny votes are great predictors of useful votes, the slope is larger for funny.  In other words, we would expect that the reviews with a set number of funny votes would tend to have more useful votes than those with the same set number of cool votes.
@@ -139,36 +154,77 @@ use = use[with(use,order(-good)),]
 print(xtable(use[1:10, c(1:3, 5:7, 9)]), include.rownames = FALSE, table.placement = '!h')
 @
 
+<<NotAlexPlots, echo=FALSE, fig.cap='Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews'>>=
+    user.data$frc = '<50'
+    user.data$frc[user.data$review_count > 50] = '50-200'
+    user.data$frc[user.data$review_count > 200] = '200-500'
+    user.data$frc[user.data$review_count > 500] = '500-1000'
+    user.data$frc[user.data$review_count > 1000] = '>1000'
+    qplot(data=user.data,average_stars,useful,color = frc)
+@
+
+The results of this plot are very encouraging that the average stars a user gives will be a strong predictor of useful reviews. Figure XX displays that users with average stars given between 3 and 4.5 are most likely to have reviews that are the most useful. It also shows that users with more total reviews are highly likely to have more useful reviews.  
+
 \section*{Preprocessing and Classification}
 The review data provided by Yelp was provided without much preprocessing.  Starting with the corpus we removed excess whitespace, put all words into lower case, removed all punctuation, removed numbers and removed stop words (stop words are common words that do not provide much meaning such as 'the', 'is' and 'or').  Our final step of preprocessing is to stem the corpus (reducing words to their base form).  Unfortunately, the stemming algorithm used in the TM package has some external dependencies on Weka and Java.  For our term document matrix we only included words that appear in at least 10 reviews.  The resulting matrix is a 27826 by 229907 sparse matrix.  The first 10 x 10 block of the matrix can be seen below in Table X.
 
+\subsection*{R Memory Issues}
+Building a term document matrix, reducing dimension using singular value decomposition and classifying based on the rows or columns of the matrix is a fairly standard method in text mining. Unfortunately we ran into a number of memory issues in R.
 
-<<TDMStuff, echo=FALSE, cache=TRUE>>=
-## Smaller sample of documents
-## Remove a lot of terms (which don't show up)
-## KMeans of the terms
-## http://stat.ethz.ch/R-manual/R-patched/library/utils/html/aspell.html
+The tm package in R by default outputs sparse matrices. Many of the classification algorithms as implemented in R do not support sparse matrices. It was also not possible to convert sparse matrices into regular matrix objects in R due to the size and dimensionality of our dataset.
 
-     reviews.data$user_id = as.character(reviews.data$user_id)
-     reviews.data$review_id = as.character(reviews.data$review_id)
-     reviews.data$business_id = as.character(reviews.data$business_id)
-     reviews.data$text = as.character(reviews.data$text)
-     
-     m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
-     t <- readTabular(mapping = m)
-     corpus <- Corpus(DataframeSource(reviews.data), readerControl = list(reader = t))
-     
-     c2 = tm_map(corpus, stripWhitespace)
-     c2 = tm_map(c2, removePunctuation)
-     c2 = tm_map(c2, tolower)
-     c2 = tm_map(c2, removeWords, stopwords("english"))
-     c2 = tm_map(c2, removeNumbers)
-     #c2 = tm_map(c2, stemDocument) #needs weka
+An alternative approach was to further reduce the number of dimensions. After removing stop words and running the corpus through a stemming algorithm we removed overly sparse words. Words that appeared in fewer than 10 documents were removed. We were able to reduce the number of columns from 27,826 to around 5,000. However the resulting matrix was still too large to fit in memory as a normal matrix object. We were able to reduce the dimensions further by sampling 20,000 documents from the original 229,907. The resulting matrix could fit into memory but this subset of our data was still too large to train an SVM or random forest.
 
-     tdm3 = TermDocumentMatrix(c2, control = list(bounds=list(global = c(10,Inf), local = c(1, Inf))))
-     
-     dtm = as.DocumentTermMatrix(tdm3)
-     print(xtable(inspect(dtm[1:10,1:10])))
+We considered sampling from an even smaller subset of the dataset but we were already reluctant to use a dataset of this size due to the dimensionality and sparsity. If memory constraints were not an issue we would need to construct a term document matrix not only with the training data but also the test data. Unfortunately it seems we’ve reached the limits of base R.
+
+We computed summary statistics on the text of the reviews and then tabled the results by whether or not the reviews were voted as being useful.  This helped us to see some factors of reviews that were most correlated with being useful.  They are displayed in Table X.
+
+<<SummaryTable, echo=FALSE, results='asis', cache=TRUE>>=
+    reviews.sub$numChar <- sapply(reviews.sub$text, nchar)
+    reviews.sub$numCap <- sapply(reviews.sub$text, function(x) { length(grep("[A-Z]", strsplit(as.character(x), split = "")[[1]])) / (nchar(x) + 1)})
+    reviews.sub$numPunc <- sapply(reviews.sub$text, function(x) { length(grep("[^a-zA-Z ]", strsplit(as.character(x), split = "")[[1]])) / (nchar(x) + 1)})
+    reviews.sub$numPar <- sapply(reviews.sub$text, function(x) { length(grep("\n", strsplit(as.character(x), split = "")[[1]])) / (nchar(x) + 1)})
+
+
+    important.words <- read.csv("m.csv")
+    reviews.sub$hasDont <- sapply(reviews.sub$text, function(x) { length(grep(" don'*t ", tolower(as.character(x)))) > 0})
+    reviews.sub$hasTime <- sapply(reviews.sub$text, function(x) { length(grep(" time[sd]* ", tolower(as.character(x)))) > 0})
+    
+    reviews.sub$useful_bin <- reviews.sub$useful > 0
+    summary.sub <- ddply(reviews.sub, .(useful_bin), summarise, numChar = mean(numChar), numCap = 100 * mean(numCap), numPunc = 100 * mean(numPunc), numPar = 100 * mean(numPar), hasDont = mean(hasDont), hasTime = mean(hasTime))
+
+    print(xtable(summary.sub), table.placement = '!h')
+@
+
+blah...
+
+<<RandomForest, echo=FALSE, results='asis', cache=TRUE>>=
+    classError <- function(table) {
+        cls1 <- (table[1,2] / (table[1,2] + table[1,1]))
+        cls2 <- (table[2,1] / (table[2,2] + table[2,1]))
+        cat(paste("Not Useful:", cls1, "\n"))
+        cat(paste("Useful:", cls2, "\n"))
+        cat(paste("Total:", mean(c(cls1, cls2)), "\n"))
+    }
+
+    reviews.train <- reviews.sub[1:18000, ]
+    reviews.test <- reviews.sub[18001:20000, -c(1:3, ncol(reviews.sub))]
+    reviews.test.truth <- reviews.sub[18001:20000, ncol(reviews.sub)]
+
+    reviews.rf <- randomForest(factor(useful_bin) ~ stars+numChar+numCap+numPunc+numPar+hasDont+hasTime, data = reviews.train, importance = TRUE, ntree = 1000)
+
+    print(xtable(reviews.rf$importance), table.placement = '!h')
+@
+
+Blah blah blah
+
+<<SVM, echo=FALSE, results='asis'>>=
+    reviews.svm <- svm(factor(useful_bin) ~ numChar+numPar+numPunc, data = reviews.train, kernel = "linear")
+
+    predict.svm <- predict(reviews.svm, reviews.test)
+    #classError(table(predict.svm, reviews.test.truth))
+
+    print(xtable(table(predict.svm, reviews.test.truth)), table.placement = '!h')
 @
 
 
