@@ -11,6 +11,7 @@ opts_chunk$set(concordance=TRUE)
     library(tm)
     library(ggplot2)
     library(xtable)
+    library(e1071)
 
 
 ## @knitr DataProcessing, echo=FALSE, cache=TRUE
@@ -25,6 +26,8 @@ opts_chunk$set(concordance=TRUE)
     reviews.json <- processData("yelp_training_set_review.json")
     user.json <- processData("yelp_training_set_user.json")
     
+    ## Read in json test files
+    reviews.test.json <- processData("yelp_test_set_review.json")
     
     ## Reviews Data
     ## Convert to DF
@@ -34,7 +37,10 @@ opts_chunk$set(concordance=TRUE)
     reviews.data$useful <- as.numeric(as.character(reviews.data$useful))
     reviews.data$cool <- as.numeric(as.character(reviews.data$cool))
     reviews.data$funny <- as.numeric(as.character(reviews.data$funny))
-    
+ 
+    ## Reviews Test Data
+    ## Convert to DF
+    reviews.test.data = data.frame(matrix(unlist(reviews.test.json), nrow = length(reviews.test.json), byrow = TRUE))
     
     ## Business Data
     ## We need to turn "Categories" into a comma separated string
@@ -119,25 +125,38 @@ print(xtable(use[1:10, c(1:3, 5:7, 9)]), include.rownames = FALSE, table.placeme
 ## KMeans of the terms
 ## http://stat.ethz.ch/R-manual/R-patched/library/utils/html/aspell.html
 
-     reviews.data$user_id = as.character(reviews.data$user_id)
-     reviews.data$review_id = as.character(reviews.data$review_id)
-     reviews.data$business_id = as.character(reviews.data$business_id)
-     reviews.data$text = as.character(reviews.data$text)
-     
-     m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
-     t <- readTabular(mapping = m)
-     corpus <- Corpus(DataframeSource(reviews.data), readerControl = list(reader = t))
-     
-     c2 = tm_map(corpus, stripWhitespace)
-     c2 = tm_map(c2, removePunctuation)
-     c2 = tm_map(c2, tolower)
-     c2 = tm_map(c2, removeWords, stopwords("english"))
-     c2 = tm_map(c2, removeNumbers)
-     #c2 = tm_map(c2, stemDocument) #needs weka
 
-     tdm3 = TermDocumentMatrix(c2, control = list(bounds=list(global = c(10,Inf), local = c(1, Inf))))
-     
-     dtm = as.DocumentTermMatrix(tdm3)
-     print(xtable(inspect(dtm[1:10,1:10])))
+#mapping function for corpus
+m = list(Content = "text", Heading = "review_id", Author = "user_id", Description = "business_id")
+t <- readTabular(mapping = m)
 
+#subset dataset
+train = sample(1:nrow(reviews.data),20000)
 
+#create and clean corpus
+corpus <- Corpus(DataframeSource(reviews.data[train,]), readerControl = list(reader = t))
+corpus = tm_map(corpus, stripWhitespace)
+corpus = tm_map(corpus, removePunctuation)
+corpus = tm_map(corpus, tolower)
+corpus = tm_map(corpus, removeWords, stopwords("english"))
+corpus = tm_map(corpus, removeNumbers)
+corpus = tm_map(corpus, stemDocument) #needs weka
+
+#Term document matrix
+tdm = TermDocumentMatrix(corpus, control = list(bounds=list(global = c(10,Inf), local = c(1, Inf))))
+dtm = as.DocumentTermMatrix(tdm)
+
+#look through term document matrix
+findFreqTerms(dtm, 15000)
+
+#possible response variables
+stars = reviews.data$stars
+funny = reviews.data$funny
+useful = reviews.data[train,]$useful > 0
+cool = reviews.data$cool
+
+#convert to normal matrix
+matrix.dtm = inspect(dtm)
+
+#classifiers
+m = svm(useful ~ matrix.dtm)
