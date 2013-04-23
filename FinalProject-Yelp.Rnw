@@ -1,4 +1,4 @@
-\documentclass[11pt]{article}
+\documentclass[12pt]{article}
 
 %AMS-TeX packages
 \usepackage{amssymb,amsmath,amsthm} 
@@ -16,7 +16,7 @@
 opts_chunk$set(concordance=TRUE)
 @
 
-\setlength{\parskip}{1ex}
+\setlength{\parskip}{3ex}
 \setlength{\parindent}{0pt}
 
 \title{STAT 503 Final Project}
@@ -125,60 +125,81 @@ reviews.json is our primary dataset for predicting whether a review is useful or
 
 Figure \ref{fig:UsefulFunny} displays the number of useful votes against the number of cool votes in blue, and the number of useful votes against the number of funny votes in red.  It can be seen that while both cool and funny votes are great predictors of useful votes, the slope is larger for funny.  In other words, we would expect that the reviews with a set number of funny votes would tend to have more useful votes than those with the same set number of cool votes.  Note, however, that we ultimately chose not to use funny and cool as predictors because the Yelp rules disallowed this.
 
-<<UsefulFunny, echo=FALSE, out.height='5in', out.width='5in', fig.show='hold', fig.align='center', fig.cap='Useful votes vs cool (blue) and funny(red) votes.  This plot indicates that a review which is voted as being funny and/or cool is also likely to be voted as being useful.', fig.pos='H'>>=
-qplot(cool, useful, data = user.data, colour = I("blue")) + 
-    geom_point(aes(x = funny, y = useful), colour = I("red")) +
-    xlab("Cool/Funny Votes") +
-    ylab("Useful Votes")
+<<UsefulFunny, echo=FALSE, out.height='6in', out.width='6in', fig.show='hold', fig.align='center', fig.cap='Useful votes vs cool (blue) and funny(red) votes.  This plot indicates that a review which is voted as being funny and/or cool is also likely to be voted as being useful.', fig.pos='H'>>=
+    qplot(cool, useful, data = user.data, colour = I("blue")) + 
+        geom_point(aes(x = funny, y = useful), colour = I("red")) +
+        xlab("Cool/Funny Votes") +
+        ylab("Useful Votes")
 @
 
 Table \ref{tab:CityData} shows the top 10 cities by number of checkins in the database.  It also shows the total number of reviews for all businesses in that city, as well as the percentage of reviews over checkins.  It can be seen that for the biggest cities in the database, there is a very uniform number of about .27 reviews per checkin.
 
 <<CityData, echo=FALSE, results='asis'>>=
-business.data$full_address <- as.character(business.data$full_address)
-
-business.data$zip <- substring(business.data$full_address, nchar(business.data$full_address) - 5, nchar(business.data$full_address))
-
-city.data = ddply(business.data,.(city),summarize,
-  reviews = sum(review_count),
-  checkins = sum(checkins))
-
-city.data <- city.data[with(city.data, order(-checkins)), ]
-
-city.data$percentage <- city.data$reviews/city.data$checkins
-
-print(xtable(city.data[1:10,], label = "tab:CityData", caption = "Top ten cities by the number of checkins in that city"), include.rownames = FALSE, table.placement = '!h')
+    business.data$full_address <- as.character(business.data$full_address)
+    
+    business.data$zip <- substring(business.data$full_address, nchar(business.data$full_address) - 5, nchar(business.data$full_address))
+    
+    city.data = ddply(business.data,.(city),summarize,
+      reviews = sum(review_count),
+      checkins = sum(checkins))
+    
+    city.data <- city.data[with(city.data, order(-checkins)), ]
+    
+    city.data$percentage <- city.data$reviews/city.data$checkins
+    
+    print(xtable(city.data[1:10,], label = "tab:CityData", caption = "Top ten cities by the number of checkins in that city"), include.rownames = FALSE, table.placement = 'H')
 @
 
 Figure \ref{fig:CheckinsBoxplot} shows boxplots of the number of checkins to each business by the average star rating of that business.  It can be observed that businesses with about a four star rating tend to have the most checkins, but five star rating businesses actually have fewer.  This may be either due to the fact that businesses with such a high rating have fewer total reviews, or they are more expensive and less likely to have a high number of customers.
 
-<<CheckinsBoxplot, echo=FALSE, out.height='5in', out.width='5in', fig.show='hold', fig.align='center', fig.pos='H', fig.cap='Number of checkins to each business by average star rating of that business'>>=
-qplot(stars.f, log(checkins), data = business.data, geom = "boxplot", colour = stars.f)
+<<CheckinsBoxplot, echo=FALSE, out.height='4.5in', out.width='4.5in', fig.show='hold', fig.align='center', fig.pos='H', fig.cap='Number of checkins to each business by average star rating of that business'>>=
+    qplot(stars.f, log(checkins), data = business.data, geom = "boxplot", colour = stars.f) +
+        xlab("Average star rating") +
+        ylab("Number of checkins")
 @
+
+\section*{Exploratory Data Analysis}
 
 Table \ref{tab:UsefulTable} displays the top ten users by the total number of useful votes divided by the total number of reviews for that user.  We have selected only users who have made at least 100 reviews.  We felt this would provide us with valuable information about what characteristics the ``best" reviewers possess.
 
 <<UsefulTable, echo=FALSE, results='asis'>>=
-use = subset(user.data,review_count>100)
-use$good = use$useful / use$review
-use = use[with(use,order(-good)),]
-
-print(xtable(use[1:10, c(1:3, 5:7, 9)], caption = "Top ten users in the Yelp data by total number of useful votes per review (Minimum 100 reviews).", label = "tab:UsefulTable"), include.rownames = FALSE, table.placement = '!h')
+    use = subset(user.data,review_count>100)
+    use$good = use$useful / use$review
+    use = use[with(use,order(-good)),]
+    
+    print(xtable(use[1:10, c(1:3, 5:7, 9)], caption = "Top ten users in the Yelp data by total number of useful votes per review (Minimum 100 reviews).", label = "tab:UsefulTable"), include.rownames = FALSE, table.placement = 'H')
 @
 
-<<NotAlexPlots, echo=FALSE, fig.cap='Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews'>>=
+Figure \ref{fig:NotAlexPlots} shows the number of useful reviews by the average number of stars for each user, colored by the user's total number of reviews.
+
+<<NotAlexPlots, echo=FALSE, fig.cap='Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews', fig.pos='H', fig.show='hold', fig.align='center'>>=
     user.data$frc = '<50'
     user.data$frc[user.data$review_count > 50] = '50-200'
     user.data$frc[user.data$review_count > 200] = '200-500'
     user.data$frc[user.data$review_count > 500] = '500-1000'
     user.data$frc[user.data$review_count > 1000] = '>1000'
-    qplot(data=user.data,average_stars,useful,color = frc)
+
+    qplot(data=user.data,average_stars,useful,color = frc) +
+        xlab("Average star rating") +
+        ylab("Number of useful reviews")
 @
 
-The results of this plot are very encouraging that the average stars a user gives will be a strong predictor of useful reviews. Figure XX displays that users with average stars given between 3 and 4.5 are most likely to have reviews that are the most useful. It also shows that users with more total reviews are highly likely to have more useful reviews.  
+The results of this plot are very encouraging that the average stars a user gives will be a strong predictor of useful reviews. The plot demonstrates that users with average stars given between 3 and 4.5 are most likely to have reviews that are the most useful. It also shows that users with more total reviews are highly likely to have more useful reviews.  
 
 \section*{Preprocessing and Classification}
-The review data provided by Yelp was provided without much preprocessing.  Starting with the corpus we removed excess whitespace, put all words into lower case, removed all punctuation, removed numbers and removed stop words (stop words are common words that do not provide much meaning such as 'the', 'is' and 'or').  Our final step of preprocessing is to stem the corpus (reducing words to their base form).  Unfortunately, the stemming algorithm used in the TM package has some external dependencies on Weka and Java.  For our term document matrix we only included words that appear in at least 10 reviews.  The resulting matrix is a 27826 by 229907 sparse matrix.  The first 10 x 10 block of the matrix can be seen below in Table X.
+The original collection of reviews was provided by Yelp with minimal preprocessing. Starting
+with the text reviews written by yelp users (our corpus), we removed whitespace, put words
+into lowercase, removed all punctuation, removed stop words, and stemmed words to put
+them into the same form. A standard text model is the “bag of word” model in which a corpus
+is represented as a term-document matrix; each word that appears in the corpus is a column
+and individual reviews (documents) are rows. From our original corpus we only included words
+that appear in at least 10 reviews. The resulting term document matrix is a 229,907 by 27,876
+sparse matrix.
+
+Our response variable is the number of ‘useful’ votes given to a particular review. In order to
+turn this into a classification problem we categorized reviews as useful if at least one person
+voted it useful. Roughly half the data has zero useful votes and the rest of the reviews have
+more than one useful vote. <add in description of response variable>
 
 \subsection*{R Memory Issues}
 Building a term document matrix, reducing dimension using singular value decomposition and classifying based on the rows or columns of the matrix is a fairly standard method in text mining. Unfortunately we ran into a number of memory issues in R.
@@ -189,7 +210,12 @@ An alternative approach was to further reduce the number of dimensions. After re
 
 We considered sampling from an even smaller subset of the dataset but we were already reluctant to use a dataset of this size due to the dimensionality and sparsity. If memory constraints were not an issue we would need to construct a term document matrix not only with the training data but also the test data. Unfortunately it seems we’ve reached the limits of base R.
 
-We computed summary statistics on the text of the reviews and then tabled the results by whether or not the reviews were voted as being useful.  This helped us to see some factors of reviews that were most correlated with being useful.  They are displayed in Table X.
+\section*{Classification}
+
+Since the text mining approach is not feasible in R we classified based on some summary
+statistics of the text data. We computed summary statistics on an 18,000 review subset of
+the original unprocessed text of the reviews and then tabled the results by whether or not the
+reviews were voted as useful (seen in Table \ref{tab:SummaryTable}).
 
 <<SummaryTable, echo=FALSE, results='asis', cache=TRUE>>=
     reviews.sub$numChar <- sapply(reviews.sub$text, nchar)
@@ -203,20 +229,36 @@ We computed summary statistics on the text of the reviews and then tabled the re
     reviews.sub$hasTime <- sapply(reviews.sub$text, function(x) { length(grep(" time[sd]* ", tolower(as.character(x)))) > 0})
     
     reviews.sub$useful_bin <- reviews.sub$useful > 0
-    summary.sub <- ddply(reviews.sub, .(useful_bin), summarise, numChar = mean(numChar), numCap = 100 * mean(numCap), numPunc = 100 * mean(numPunc), numPar = 100 * mean(numPar), hasDont = mean(hasDont), hasTime = mean(hasTime))
+    summary.sub <- ddply(reviews.sub, .(useful_bin), summarise, numChar = mean(numChar), numCap = mean(numCap), numPunc = mean(numPunc), numPar = mean(numPar), hasDont = mean(hasDont), hasTime = mean(hasTime))
 
-    print(xtable(summary.sub), table.placement = '!h')
+    print(xtable(summary.sub, label = "tab:SummaryTable", caption = "Summary statistics for all reviews by whether the review was voted as useful or not.  The variables include the number of characters, percentage of letters capitalized, percentage of the review containing punctuation, the percentage of reviews that contain the word dont, and the percentage of reviews that contain the word time"), table.placement = 'H')
 @
 
-blah...
+The variables we considered were number of stars a review gave, number of characters
+in a review, number of capital letters used, number of punctuation marks used, number of
+paragraphs and whether or not the review contains the words ``time" and ``don’t".
+We reasoned that longer reviews contained more useful information and useful reviews are
+more likely to contain proper punctuation, proper capitalization and more likely to be structured
+in paragraphs. We also calculated the word frequencies for useful reviews versus the word
+frequencies for unuseful reviews. Based on word frequencies we calculated the probabilities
+of words that are likely to appear in useful versus unuseful reviews. We found that the words
+“don’t” and “time” are much more likely to appear in a useful review than an unuseful review.
+Additionally, we reasoned that a review with a higher star rating would be more likely to have a
+useful explanation to justify the star rating.
 
-<<RandomForest, echo=FALSE, results='asis', cache=TRUE>>=
+We initially fit all of the variables into a random forest classifier and used mean decrease in
+accuracy and mean decrease gini from the random forest algorithm to find the most important
+variables. The results are displayed in Table \ref{tab:RandomForest}.
+
+<<ModelDef, echo=FALSE, cache=TRUE>>=
     classError <- function(table) {
         cls1 <- (table[1,2] / (table[1,2] + table[1,1]))
         cls2 <- (table[2,1] / (table[2,2] + table[2,1]))
-        cat(paste("Not Useful:", cls1, "\n"))
-        cat(paste("Useful:", cls2, "\n"))
-        cat(paste("Total:", mean(c(cls1, cls2)), "\n"))
+        #cat(paste("Not Useful:", cls1, "\n"))
+        #cat(paste("Useful:", cls2, "\n"))
+        #cat(paste("Total:", mean(c(cls1, cls2)), "\n"))
+        
+        return(mean(c(cls1, cls2)))
     }
 
     reviews.train <- reviews.sub[1:18000, ]
@@ -225,18 +267,28 @@ blah...
 
     reviews.rf <- randomForest(factor(useful_bin) ~ stars+numChar+numCap+numPunc+numPar+hasDont+hasTime, data = reviews.train, importance = TRUE, ntree = 1000)
 
-    print(xtable(reviews.rf$importance), table.placement = '!h')
-@
-
-Blah blah blah
-
-<<SVM, echo=FALSE, results='asis'>>=
     reviews.svm <- svm(factor(useful_bin) ~ numChar+numPar+numPunc, data = reviews.train, kernel = "linear")
 
     predict.svm <- predict(reviews.svm, reviews.test)
     #classError(table(predict.svm, reviews.test.truth))
+@
 
-    print(xtable(table(predict.svm, reviews.test.truth)), table.placement = '!h')
+
+<<RandomForest, echo=FALSE, results='asis'>>=
+    print(xtable(reviews.rf$importance, label = "tab:RandomForest", caption = "A list of the variables and their importance as determined by the randomForest algorithm.  We ultimately selected three of these variables, numChar, numCap, and numPunc for use in our SVM."), table.placement = 'H')
+@
+
+From the previous importance results, we fit a model on an 18,000 document subset of our
+original dataset to predict usefulness based on the number of characters, capitalization and
+number of paragraphs. We tested our model on a separate randomly selected 2,000 document
+subset of our original dataset. Our overall accuracy is \Sexpr{classError(table(predict.svm, reviews.test.truth))}\%. The full classification results can be seen in the confusion matrix displayed in Table \ref{tab:SVM}.
+
+<<SVM, echo=FALSE, results='asis'>>=
+    tbl <- table(predict.svm, reviews.test.truth)
+    colnames(tbl) <- c("True Useful", "True Not Useful")
+    rownames(tbl) <- c("Predicted Useful", "Predicted Not Useful")
+
+    print(xtable(table(predict.svm, reviews.test.truth), label = "tab:SVM", caption = "Truth Table for the results of our model"), table.placement = 'H')
 @
 
 
