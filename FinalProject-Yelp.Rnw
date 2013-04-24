@@ -291,5 +291,6 @@ subset of our original dataset. Our overall accuracy is \Sexpr{classError(table(
     print(xtable(table(predict.svm, reviews.test.truth), label = "tab:SVM", caption = "Truth Table for the results of our model"), table.placement = 'H')
 @
 
+% APPENDIX : Role each group member played
 
 \end{document}
