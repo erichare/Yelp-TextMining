@@ -41,13 +41,13 @@ opts_chunk$set(concordance=TRUE)
 The dataset that we have includes reviews of the different businesses written by yelp users in the Phoenix, Arizona metropolitan area in the time frame of January 13 - March 12, 2013. Our analysis is using the reviews given to us and identify which reviews were classified as useful based on only the number of stars the user gave the business, the total number of reviews by the user, the average star given by the user, and the text data of the review. Using this data, we fit an SVM in order to predict the usefulness of the test set of reviews.
 
 \section*{Data}
-We began by taking the unparsed json files from Yelp and producing three main datasets: business.json, user.json, and reviews.json.
+We began by taking the unparsed json files from Yelp and producing three main datasets: business.data, user.data, and reviews.data.
 
-business.json has information for every business in the Phoenix area that yelp has recorded and includes the following variables (name of business, business id, address, type of business, \# of reviews, \# of checkins, \# of stars).  Because of the aim of our study the business dataset will be used as an initial data analysis to examine the differences between businesses and try to identify any potential concerns in the data.  Concerns we will be aware of include an employee from the business giving the business many “false” positive reviews of a business.  Also we can use this data to identify differences among businesses and analyze businesses that have a high percentage of reviews per check in.
+business.data includes information for every business in the Phoenix area that yelp has recorded and includes the following variables (name of business, business id, address, type of business, \# of reviews, \# of checkins, \# of stars).  Because of the aim of our study the business dataset will be used as an initial data analysis to examine the differences between businesses and try to identify any potential concerns in the data.  Concerns we will be aware of include an employee from the business giving the business many “false” positive reviews of a business.  Also we can use this data to identify differences among businesses and analyze businesses that have a high percentage of reviews per check in.
 
-user.json has all of the different information for each user that yelp keeps track of.  Within this dataset we have for each user the variables (name of user, user id, \# of funny reviews, \# of useful reviews, \# of cool reviews, \# average stars, total \# reviews).  Different from the business.json data there are some important variables in this dataset that is given in the test set that we can use to better our analysis of useful reviews.  By looking at the total number of reviews the user has and their average star count possibly we can identify a trend with these two variables and see how it pertains to predicting whether the users reviews are classified as useful or not.  There are also other variables given in this dataset that we can use to further explore our data that is given, however those will not be useful in our final analysis of predicting useful reviews.
+user.data has all of the different information for each user that yelp keeps track of.  Within this dataset we have for each user the variables (name of user, user id, \# of funny reviews, \# of useful reviews, \# of cool reviews, \# average stars, total \# reviews).  Different from the business.json data there are some important variables in this dataset that is given in the test set that we can use to better our analysis of useful reviews.  By looking at the total number of reviews the user has and their average star count possibly we can identify a trend with these two variables and see how it pertains to predicting whether the users reviews are classified as useful or not.  There are also other variables given in this dataset that we can use to further explore our data that is given, however those will not be useful in our final analysis of predicting useful reviews.
 
-reviews.json is our primary dataset for predicting whether a review is useful or not because it has every review recorded and all of the different information recorded by yelp for each review.  These variables include (review id, user id, business id, \# votes funny, \# votes useful, \# votes cool, \# stars given, date of review, text).  Based on the goals of our study we will only be concerned with whether the review was useful, the stars given by the user, and the text data to identify the unique aspects of a review that others find to be useful.
+reviews.data is our primary dataset for predicting whether a review is useful or not because it has every review recorded and all of the different information recorded by yelp for each review.  These variables include (review id, user id, business id, \# votes funny, \# votes useful, \# votes cool, \# stars given, date of review, text).  Based on the goals of our study we will only be concerned with whether the review was useful, the stars given by the user, and the text data to identify the unique aspects of a review that others find to be useful.
 
 \section*{Data Analysis}
 
@@ -137,7 +137,7 @@ Figure \ref{fig:UsefulFunny} displays the number of useful votes against the num
         ylab("Useful Votes")
 @
 
-Table \ref{tab:CityData} shows the top 10 cities by number of checkins in the database.  It also shows the total number of reviews for all businesses in that city, as well as the percentage of reviews over checkins.  It can be seen that for the biggest cities in the database, there is a very uniform number of about .27 reviews per checkin.
+Table \ref{tab:CityData} shows the top 10 cities by number of check-ins in the database.  It also shows the total number of reviews for all businesses in that city, as well as the percentage of reviews over check-ins.  It can be seen that for the biggest cities in the database, there is a very uniform number of about .27 reviews per check-in.
 
 <<CityData, echo=FALSE, results='asis'>>=
     business.data$full_address <- as.character(business.data$full_address)
@@ -153,7 +153,7 @@ Table \ref{tab:CityData} shows the top 10 cities by number of checkins in the da
     print(xtable(city.data[1:10,], label = "tab:CityData", caption = "Top ten cities by the number of checkins in that city"), include.rownames = FALSE, table.placement = 'H')
 @
 
-Figure \ref{fig:CheckinsBoxplot} shows boxplots of the number of checkins to each business by the average star rating of that business.  It can be observed that businesses with about a four star rating tend to have the most checkins, but five star rating businesses actually have fewer.  This may be either due to the fact that businesses with such a high rating have fewer total reviews, or they are more expensive and less likely to have a high number of customers.
+Figure \ref{fig:CheckinsBoxplot} shows boxplots of the number of check-ins to each business by the average star rating of that business.  It can be observed that businesses with about a four star rating tend to have the most check-ins, but five star rating businesses actually have fewer.  This may be either due to the fact that businesses with such a high rating have fewer total reviews, or they are more expensive and less likely to have a high number of customers.
 
 <<CheckinsBoxplot, echo=FALSE, out.height='4.5in', out.width='4.5in', fig.show='hold', fig.align='center', fig.pos='H', fig.cap='Number of checkins to each business by average star rating of that business'>>=
     qplot(stars.f, log(checkins), data = business.data, geom = "boxplot", colour = stars.f) +
@@ -188,19 +188,9 @@ Figure \ref{fig:NotAlexPlots} shows the number of useful reviews by the average 
 The results of this plot are very encouraging that the average stars a user gives will be a strong predictor of useful reviews. The plot demonstrates that users with average stars given between 3 and 4.5 are most likely to have reviews that are the most useful. It also shows that users with more total reviews are highly likely to have more useful reviews.  
 
 \section*{Preprocessing and Classification}
-The original collection of reviews was provided by Yelp with minimal preprocessing. Starting
-with the text reviews written by yelp users (our corpus), we removed whitespace, put words
-into lowercase, removed all punctuation, removed stop words, and stemmed words to put
-them into the same form. A standard text model is the “bag of word” model in which a corpus
-is represented as a term-document matrix; each word that appears in the corpus is a column
-and individual reviews (documents) are rows. From our original corpus we only included words
-that appear in at least 10 reviews. The resulting term document matrix is a 229,907 by 27,876
-sparse matrix.
+The original collection of reviews was provided by Yelp with minimal preprocessing. Starting with the text reviews written by yelp users (our corpus), we removed whitespace, put words into lowercase, removed all punctuation, removed stop words, and stemmed words to put them into the same form. A standard text model is the “bag of word” model in which a corpus is represented as a term-document matrix; each word that appears in the corpus is a column and individual reviews (documents) are rows. From our original corpus we only included words that appear in at least 10 reviews. The resulting term document matrix is a 229,907 by 27,876 sparse matrix.
 
-Our response variable is the number of ‘useful’ votes given to a particular review. In order to
-turn this into a classification problem we categorized reviews as useful if at least one person
-voted it useful. Roughly half the data has zero useful votes and the rest of the reviews have
-more than one useful vote. <add in description of response variable>
+Our response variable is the number of ‘useful’ votes given to a particular review. In order to turn this into a classification problem we categorized reviews as useful if at least one person voted it useful. Roughly half the data has zero useful votes and the rest of the reviews have more than one useful vote.
 
 \subsection*{R Memory and Computation Time Issues}
 Building a term document matrix, reducing dimension using singular value decomposition and classifying based on the rows or columns of the matrix is a fairly standard method in text mining. Unfortunately we ran into a number of memory issues in R.
@@ -209,7 +199,7 @@ The tm package in R by default outputs sparse matrices. Many of the classificati
 
 An alternative approach was to further reduce the number of dimensions. After removing stop words and running the corpus through a stemming algorithm we removed overly sparse words. Words that appeared in fewer than 10 documents were removed. We were able to reduce the number of columns from 27,826 to around 5,000. However the resulting matrix was still too large to fit in memory as a normal matrix object. We were able to reduce the dimensions further by sampling 20,000 documents from the original 229,907. The resulting matrix could fit into memory as a normal matrix object but even then we ran into memory and time issues with both SVM and random forests.
 
-We considered sampling from an even smaller subset of the dataset but we were already reluctant to use a dataset of this size due to the dimensionality and sparsity. If memory constraints were not an issue we would need to construct a term document matrix not only with the training data but also the test data. Unfortunately it seems we’ve reached the limits of base R.
+We considered sampling from an even smaller subset of the dataset but we were already reluctant to use a dataset of this size due to the dimensionality and sparsity. If memory constraints were not an issue we would need to construct a term document matrix not only with the training data but also the test data. Unfortunately it seems we've reached the limits of base R.
 
 \section*{Classification}
 
@@ -245,21 +235,10 @@ reviews were voted as useful (seen in Table \ref{tab:SummaryTable}).
     print(xtable(summary.sub, label = "tab:SummaryTable", caption = "Summary statistics for all reviews by whether the review was voted as useful or not.  The variables include the number of characters, percentage of letters capitalized, percentage of letters that are punctuation characters, paragraphs per length of review, the number of useful votes for the particular user writing the review over the total number of reviews for that user, and the average star rating of the business being reviewed.", digits = 4), table.placement = 'H')
 @
 
-The variables we considered were number of stars a review gave, number of characters
-in a review, number of capital letters used, number of punctuation marks used, number of
-paragraphs, the useful votes for that user per review, and the average star rating of the business being reviewed.
-We reasoned that longer reviews contained more useful information and useful reviews are
-more likely to contain proper punctuation, proper capitalization and more likely to be structured
-in paragraphs. We also calculated the word frequencies for useful reviews versus the word
-frequencies for unuseful reviews. Based on word frequencies we calculated the probabilities
-of words that are likely to appear in useful versus unuseful reviews.  As expected, we found that users who write reviews that have previously been voted as useful are more likely to write useful reviews in the future.  We found that the star rating of businesses receiving useful reviews was pretty consistent with those that received unuseful reviews.  Finally, although it was not displayed in this summary table, we found that the words
-``don’t" and ``time" are much more likely to appear in a useful review than an unuseful review.
-Additionally, we reasoned that a review with a higher star rating would be more likely to have a
-useful explanation to justify the star rating.
+The variables we considered were number of stars a review gave, number of characters in a review, number of capital letters used, number of punctuation marks used, number of paragraphs, the useful votes for that user per review, and the average star rating of the business being reviewed.  We reasoned that longer reviews contained more useful information and useful reviews are more likely to contain proper punctuation, proper capitalization and more likely to be structured in paragraphs. We also calculated the word frequencies for useful reviews versus the word
+frequencies for unuseful reviews. Based on word frequencies we calculated the probabilities of words that are likely to appear in useful versus unuseful reviews.  As expected, we found that users who write reviews that have previously been voted as useful are more likely to write useful reviews in the future.  We found that the star rating of businesses receiving useful reviews was pretty consistent with those that received unuseful reviews.  Finally, although it was not displayed in this summary table, we found that the words ``don't" and ``time" are much more likely to appear in a useful review than an unuseful review. Additionally, we reasoned that a review with a higher star rating would be more likely to have a useful explanation to justify the star rating.
 
-We initially fit all of the variables into a random forest classifier and used mean decrease in
-accuracy and mean decrease gini from the random forest algorithm to find the most important
-variables. The results are displayed in Table \ref{tab:RandomForest}.
+We initially fit all of the variables into a random forest classifier and used mean decrease in accuracy and mean decrease gini from the random forest algorithm to find the most important variables. The results are displayed in Table \ref{tab:RandomForest}.
 
 <<ModelDef, echo=FALSE, cache=TRUE>>=
     classError <- function(table) {
@@ -290,10 +269,7 @@ variables. The results are displayed in Table \ref{tab:RandomForest}.
     print(xtable(reviews.rf$importance, label = "tab:RandomForest", caption = "A list of the variables and their importance as determined by the randomForest algorithm.  We ultimately selected six of these variables, numChar, numPar, numCap, and numPunc, useful.per, and average stars for use in our SVM.", digits = 4), table.placement = 'H')
 @
 
-From the previous importance results, we fit a model on an 18,000 document subset of our
-original dataset to predict usefulness based on the number of characters, capitalization and
-number of paragraphs. We tested our model on a separate randomly selected 2,000 document
-subset of our original dataset. Our overall error rate is \Sexpr{classError(table(predict.svm, reviews.test.truth))$overall}\%. The full classification results can be seen in the confusion matrix displayed in Table \ref{tab:SVM}.
+From the previous importance results, we fit a model on an 18,000 document subset of our original dataset to predict usefulness based on the number of characters, capitalization and number of paragraphs. We tested our model on a separate randomly selected 2,000 document subset of our original dataset. Our overall error rate is \Sexpr{classError(table(predict.svm, reviews.test.truth))$overall}\%. The full classification results can be seen in the confusion matrix displayed in Table \ref{tab:SVM}.
 
 <<SVM, echo=FALSE, results='asis'>>=
     tbl <- table(predict.svm, reviews.test.truth)
