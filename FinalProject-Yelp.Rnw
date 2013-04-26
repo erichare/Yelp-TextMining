@@ -201,12 +201,12 @@ turn this into a classification problem we categorized reviews as useful if at l
 voted it useful. Roughly half the data has zero useful votes and the rest of the reviews have
 more than one useful vote. <add in description of response variable>
 
-\subsection*{R Memory Issues}
+\subsection*{R Memory and Computation Time Issues}
 Building a term document matrix, reducing dimension using singular value decomposition and classifying based on the rows or columns of the matrix is a fairly standard method in text mining. Unfortunately we ran into a number of memory issues in R.
 
-The tm package in R by default outputs sparse matrices. Many of the classification algorithms as implemented in R do not support sparse matrices. It was also not possible to convert sparse matrices into regular matrix objects in R due to the size and dimensionality of our dataset.
+The tm package in R by default outputs sparse matrices. Many of the classification algorithms as implemented in R do not support sparse matrices. It was also not possible to convert sparse matrices into regular matrix objects in R due to the size and dimensionality of our dataset.  The SVM function in e1071 does support sparse matrices but for a large dataset training time is a major issue.  We tried training an SVM and we were not able to fit the model even after a full day of computer time.
 
-An alternative approach was to further reduce the number of dimensions. After removing stop words and running the corpus through a stemming algorithm we removed overly sparse words. Words that appeared in fewer than 10 documents were removed. We were able to reduce the number of columns from 27,826 to around 5,000. However the resulting matrix was still too large to fit in memory as a normal matrix object. We were able to reduce the dimensions further by sampling 20,000 documents from the original 229,907. The resulting matrix could fit into memory but this subset of our data was still too large to train an SVM or random forest.
+An alternative approach was to further reduce the number of dimensions. After removing stop words and running the corpus through a stemming algorithm we removed overly sparse words. Words that appeared in fewer than 10 documents were removed. We were able to reduce the number of columns from 27,826 to around 5,000. However the resulting matrix was still too large to fit in memory as a normal matrix object. We were able to reduce the dimensions further by sampling 20,000 documents from the original 229,907. The resulting matrix could fit into memory as a normal matrix object but even then we ran into memory and time issues with both SVM and random forests.
 
 We considered sampling from an even smaller subset of the dataset but we were already reluctant to use a dataset of this size due to the dimensionality and sparsity. If memory constraints were not an issue we would need to construct a term document matrix not only with the training data but also the test data. Unfortunately it seems we’ve reached the limits of base R.
 
@@ -290,6 +290,9 @@ subset of our original dataset. Our overall accuracy is \Sexpr{classError(table(
 
     print(xtable(table(predict.svm, reviews.test.truth), label = "tab:SVM", caption = "Truth Table for the results of our model"), table.placement = 'H')
 @
+
+\section*{Conclusion}
+From our initial data analysis of the Yelp dataset we found that useful votes are correlated with both cool and funny votes, most businesses have an average star rating of four stars and, unsurprisingly, Yelp users who wrote the most reviews also had the most useful votes.  The biggest challenge to this project was computational in nature.  We were unable to use the text data in its entirety to predict review usefulness.  Using summary statistics on the text data we were able to achieve around 62 percent accuracy using an SVM.  We can conclude from our results that review usefulness can be  partially predicted solely on the text structure rather than content.  Useful reviews tended to be longer, structured in paragraphs and with punctuation.  With additional resources we would expand our analysis to a model containing structure, text content, user information and business information.  We feel we can drastically improve our results by including text data and background information on users and businesses (number of reviews, average rating of reviews).
 
 % APPENDIX : Role each group member played
 
