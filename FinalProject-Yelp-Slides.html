@@ -91,17 +91,15 @@
     <h2>Data: Reviews</h2>
   </hgroup>
   <article>
-    <pre><code class="r">reviews.data[3, ]
+    <pre><code class="r">reviews.sub[18, ]
 </code></pre>
 
-<pre><code>##   funny useful cool                user_id              review_id stars
-## 3     0      1    0 0hT2KtfLiobPvh6cDC8JQg IESLBzqUCLdSzSqm0eCSxQ     4
-##         date
-## 3 2012-06-14
-##                                                                           text
-## 3 love the gyro plate. Rice is so good and I also dig their candy selection :)
-##     type            business_id
-## 3 review 6oRAC4uyJCsJl1X0WZpVSA
+<pre><code>##       funny useful cool                user_id              review_id
+## 86819     0      0    0 Ts367xA-JqA4s13qY0awbg _RDx1GXkVG8Xxk_VYqZrBg
+##       stars       date                                           text
+## 86819     2 2012-09-27 Totally flavorless.  I&#39;d rather have in-n-out.
+##         type            business_id
+## 86819 review Cr2JNnewX53TYd9w6qw6Jw
 </code></pre>
 
   </article>
@@ -110,7 +108,7 @@
 
       <slide class="" id="slide-5" style="background:;">
   <hgroup>
-    <h2>Initial Data Analysis</h2>
+    <h2>Data Analysis</h2>
   </hgroup>
   <article>
     <p>...</p>
@@ -137,7 +135,7 @@
   <article>
     <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
 
-<!-- Wed Apr 24 14:48:31 2013 -->
+<!-- Fri Apr 26 18:56:24 2013 -->
 
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Top ten cities by the number of checkins in that city </CAPTION>
@@ -172,23 +170,12 @@
 
       <slide class="" id="slide-9" style="background:;">
   <hgroup>
-    <h2>Exploratory Data Analysis</h2>
-  </hgroup>
-  <article>
-    <p>...</p>
-
-  </article>
-  <!-- Presenter Notes -->
-</slide>
-
-      <slide class="" id="slide-10" style="background:;">
-  <hgroup>
     <h2>Useful Users</h2>
   </hgroup>
   <article>
     <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
 
-<!-- Wed Apr 24 14:48:32 2013 -->
+<!-- Fri Apr 26 18:56:25 2013 -->
 
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Top ten users in the Yelp data by total number of useful votes per review (Minimum 100 reviews). </CAPTION>
@@ -210,13 +197,145 @@
   <!-- Presenter Notes -->
 </slide>
 
-      <slide class="" id="slide-11" style="background:;">
+      <slide class="" id="slide-10" style="background:;">
   <hgroup>
     <h2>Usefulness by Star Rating</h2>
   </hgroup>
   <article>
     <p><img src="figure/usefulbystars.png" alt="plot of chunk usefulbystars"> </p>
 
+<h2>Preprocessing and Classification</h2>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-11" style="background:;">
+  <hgroup>
+    <h2>R Memory and Computation Time Issues</h2>
+  </hgroup>
+  <article>
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-12" style="background:;">
+  <hgroup>
+    <h2>Classification</h2>
+  </hgroup>
+  <article>
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-13" style="background:;">
+  <hgroup>
+    <h2>Characteristics of Useful Reviews</h2>
+  </hgroup>
+  <article>
+    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+
+<!-- Fri Apr 26 18:56:41 2013 -->
+
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> Summary statistics for all reviews by whether the review was voted as useful or not.  The variables include the number of characters, percentage of letters capitalized, percentage of letters that are punctuation characters, paragraphs per length of review, the number of useful votes for the particular user writing the review over the total number of reviews for that user, and the average star rating of the business being reviewed. </CAPTION>
+<TR> <TH>  </TH> <TH> useful_bin </TH> <TH> numChar </TH> <TH> numCap </TH> <TH> numPunc </TH> <TH> numPar </TH> <TH> useful.per </TH> <TH> average_stars </TH>  </TR>
+  <TR> <TD align="right"> 1 </TD> <TD> FALSE </TD> <TD align="right"> 536.6503 </TD> <TD align="right"> 0.0303 </TD> <TD align="right"> 0.0403 </TD> <TD align="right"> 0.0031 </TD> <TD align="right"> 0.8648 </TD> <TD align="right"> 3.5536 </TD> </TR>
+  <TR> <TD align="right"> 2 </TD> <TD> TRUE </TD> <TD align="right"> 830.0923 </TD> <TD align="right"> 0.0297 </TD> <TD align="right"> 0.0428 </TD> <TD align="right"> 0.0048 </TD> <TD align="right"> 2.0467 </TD> <TD align="right"> 3.5290 </TD> </TR>
+   <A NAME=tab:SummaryTable></A>
+</TABLE>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-14" style="background:;">
+  <hgroup>
+    <h2>Random Forest Importance</h2>
+  </hgroup>
+  <article>
+    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+
+<!-- Fri Apr 26 18:56:44 2013 -->
+
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> A list of the variables and their importance as determined by the randomForest algorithm.  We ultimately selected six of these variables, numChar, numPar, numCap, and numPunc, useful.per, and average stars for use in our SVM. </CAPTION>
+<TR> <TH>  </TH> <TH> FALSE </TH> <TH> TRUE </TH> <TH> MeanDecreaseAccuracy </TH> <TH> MeanDecreaseGini </TH>  </TR>
+  <TR> <TD align="right"> stars </TD> <TD align="right"> 0.0057 </TD> <TD align="right"> 0.0035 </TD> <TD align="right"> 0.0044 </TD> <TD align="right"> 349.3500 </TD> </TR>
+  <TR> <TD align="right"> numChar </TD> <TD align="right"> 0.0154 </TD> <TD align="right"> 0.0159 </TD> <TD align="right"> 0.0157 </TD> <TD align="right"> 1451.2652 </TD> </TR>
+  <TR> <TD align="right"> numCap </TD> <TD align="right"> -0.0007 </TD> <TD align="right"> 0.0024 </TD> <TD align="right"> 0.0011 </TD> <TD align="right"> 1221.3895 </TD> </TR>
+  <TR> <TD align="right"> numPunc </TD> <TD align="right"> 0.0009 </TD> <TD align="right"> 0.0064 </TD> <TD align="right"> 0.0041 </TD> <TD align="right"> 1246.2444 </TD> </TR>
+  <TR> <TD align="right"> numPar </TD> <TD align="right"> 0.0127 </TD> <TD align="right"> 0.0068 </TD> <TD align="right"> 0.0093 </TD> <TD align="right"> 817.7550 </TD> </TR>
+  <TR> <TD align="right"> useful.per </TD> <TD align="right"> 0.0782 </TD> <TD align="right"> 0.0934 </TD> <TD align="right"> 0.0871 </TD> <TD align="right"> 2274.3753 </TD> </TR>
+  <TR> <TD align="right"> average_stars </TD> <TD align="right"> -0.0146 </TD> <TD align="right"> 0.0342 </TD> <TD align="right"> 0.0138 </TD> <TD align="right"> 1111.7662 </TD> </TR>
+   <A NAME=tab:RandomForest></A>
+</TABLE>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-15" style="background:;">
+  <hgroup>
+    <h2>Our Final SVM</h2>
+  </hgroup>
+  <article>
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-16" style="background:;">
+  <hgroup>
+    <h2>Truth Table</h2>
+  </hgroup>
+  <article>
+    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+
+<!-- Fri Apr 26 18:56:45 2013 -->
+
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> Truth Table for the results of our model </CAPTION>
+<TR> <TH>  </TH> <TH> FALSE </TH> <TH> TRUE </TH>  </TR>
+  <TR> <TD align="right"> FALSE </TD> <TD align="right"> 527 </TD> <TD align="right"> 340 </TD> </TR>
+  <TR> <TD align="right"> TRUE </TD> <TD align="right"> 264 </TD> <TD align="right"> 869 </TD> </TR>
+   <A NAME=tab:SVM></A>
+</TABLE>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-17" style="background:;">
+  <hgroup>
+    <h2>Results</h2>
+  </hgroup>
+  <article>
+    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+
+<!-- Fri Apr 26 18:56:45 2013 -->
+
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> Individual and overall class error rates for our model </CAPTION>
+<TR> <TH>  </TH> <TH> Type </TH> <TH> ErrorRates </TH>  </TR>
+  <TR> <TD align="right"> 1 </TD> <TD> Useful Error </TD> <TD align="right"> 0.2330 </TD> </TR>
+  <TR> <TD align="right"> 2 </TD> <TD> Not Useful Error </TD> <TD align="right"> 0.3922 </TD> </TR>
+  <TR> <TD align="right"> 3 </TD> <TD> Overall Error </TD> <TD align="right"> 0.3126 </TD> </TR>
+   <A NAME=tab:ClassErrorTable></A>
+</TABLE>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-18" style="background:;">
+  <hgroup>
+    
+  </hgroup>
+  <article>
+    
   </article>
   <!-- Presenter Notes -->
 </slide>

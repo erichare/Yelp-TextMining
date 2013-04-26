@@ -89,11 +89,20 @@ mode        : selfcontained # {standalone, draft}
     business.data$stars.f <- factor(business.data$stars)
     business.data$latitude <- as.numeric(as.character(business.data$latitude))
     
+    ## Make sure all the reviews are text
     reviews.data$text <- as.character(reviews.data$text)
 
+    ## Sample 20000 reviews so that the text processing will finish
     set.seed(20130421)
     data.sample <- sample(1:nrow(reviews.data), 20000)
     reviews.sub <- reviews.data[data.sample, ]
+
+    ## Clean out the json files to save memory
+    rm(reviews.json)
+    rm(user.json)
+    rm(business.json)
+    rm(checkin.json)
+    rm(reviews.data)
 ```
 
 ---
@@ -114,12 +123,12 @@ mode        : selfcontained # {standalone, draft}
 
 ## Data: Reviews
 ```{r datapeek3}
-    reviews.data[3,]
+    reviews.sub[18,]
 ```
 
 ---
 
-## Initial Data Analysis
+## Data Analysis
 ...
 
 ---
@@ -162,11 +171,6 @@ mode        : selfcontained # {standalone, draft}
 
 ---
 
-## Exploratory Data Analysis
-...
-
----
-
 ## Useful Users
 ```{r usefulusers, echo=FALSE, results='asis'}
     use = subset(user.data,review_count>100)
@@ -191,3 +195,93 @@ mode        : selfcontained # {standalone, draft}
         ylab("Number of useful reviews")
 ```
 
+## Preprocessing and Classification
+
+---
+
+## R Memory and Computation Time Issues
+
+---
+
+## Classification
+
+---
+
+```{r loaduseful, echo=FALSE}
+    ## Generate summary statistics
+    reviews.sub$numChar <- sapply(reviews.sub$text, nchar)
+    reviews.sub$numCap <- sapply(reviews.sub$text, function(x) { length(grep("[A-Z]", strsplit(as.character(x), split = "")[[1]])) / (nchar(x) + 1)})
+    reviews.sub$numPunc <- sapply(reviews.sub$text, function(x) { length(grep("[^a-zA-Z ]", strsplit(as.character(x), split = "")[[1]])) / (nchar(x) + 1)})
+    reviews.sub$numPar <- sapply(reviews.sub$text, function(x) { length(grep("\n", strsplit(as.character(x), split = "")[[1]])) / (nchar(x) + 1)})
+    
+    # Load important words
+    important.words <- read.csv("m.csv")
+
+    reviews.final <- merge(reviews.sub, user.data[,c("user_id", "average_stars", "useful", "review_count")], by = "user_id", all.x = TRUE, suffixes = c(".review", ".user"))
+
+    reviews.final$useful.user[is.na(reviews.final$useful.user)] <- 0
+    reviews.final$review_count[is.na(reviews.final$review_count)] <- 0
+    reviews.final$average_stars[is.na(reviews.final$average_stars)] <- 0
+
+    reviews.final$useful.per <- reviews.final$useful.user / (reviews.final$review_count + 1)
+    
+    reviews.final$useful_bin <- reviews.final$useful.review > 0
+    summary.sub <- ddply(reviews.final, .(useful_bin), summarise, numChar = mean(numChar), numCap = mean(numCap), numPunc = mean(numPunc), numPar = mean(numPar), useful.per = mean(useful.per), average_stars = mean(average_stars))
+
+```
+
+
+## Characteristics of Useful Reviews
+```{r usefulrevs, echo=FALSE, results='asis'}
+    print(xtable(summary.sub, label = "tab:SummaryTable", caption = "Summary statistics for all reviews by whether the review was voted as useful or not.  The variables include the number of characters, percentage of letters capitalized, percentage of letters that are punctuation characters, paragraphs per length of review, the number of useful votes for the particular user writing the review over the total number of reviews for that user, and the average star rating of the business being reviewed.", digits = 4), table.placement = 'H', type = "html")
+```
+
+---
+
+```{r themodel, echo=FALSE, cache=TRUE}
+    classError <- function(table) {
+        cls1 <- (table[1,2] / (table[1,2] + table[1,1]))
+        cls2 <- (table[2,1] / (table[2,2] + table[2,1]))
+        
+        return(list(overall = mean(c(cls1, cls2)), usefulError = cls2, notusefulError = cls1))
+    }
+
+    reviews.train <- reviews.final[1:18000, ]
+    reviews.test <- reviews.final[18001:20000,]
+    reviews.test <- reviews.test[complete.cases(reviews.test),]
+    reviews.test.truth <- reviews.test$useful_bin
+
+    reviews.rf <- randomForest(factor(useful_bin) ~ stars+numChar+numCap+numPunc+numPar+useful.per+average_stars, data = reviews.train, importance = TRUE, ntree = 1000)
+
+    reviews.svm <- svm(factor(useful_bin) ~ numChar+numPar+numPunc+numCap+useful.per+average_stars, data = reviews.train, kernel = "linear")
+
+    predict.svm <- predict(reviews.svm, reviews.test)
+```
+
+## Random Forest Importance
+```{r rfimp, echo=FALSE, results='asis'}
+    print(xtable(reviews.rf$importance, label = "tab:RandomForest", caption = "A list of the variables and their importance as determined by the randomForest algorithm.  We ultimately selected six of these variables, numChar, numPar, numCap, and numPunc, useful.per, and average stars for use in our SVM.", digits = 4), table.placement = 'H', type = "html")
+```
+
+---
+
+## Our Final SVM
+
+---
+
+## Truth Table
+```{r truthtab, echo=FALSE, results='asis'}
+    tbl <- table(predict.svm, reviews.test.truth)
+
+    print(xtable(tbl, label = "tab:SVM", caption = "Truth Table for the results of our model"), table.placement = 'H', type = "html")
+```
+
+---
+
+## Results
+```{r results, echo=FALSE, results='asis'}
+    print(xtable(data.frame(Type = c("Useful Error", "Not Useful Error", "Overall Error"), ErrorRates = c(classError(tbl)$usefulError, classError(tbl)$notusefulError, classError(tbl)$overall)), label = "tab:ClassErrorTable", caption = "Individual and overall class error rates for our model", digits = 4), table.placement = 'H', type = "html")
+
+```
+
+---

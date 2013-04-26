@@ -57,24 +57,22 @@ head(user.data, n = 1)
 ## Data: Reviews
 
 ```r
-reviews.data[3, ]
+reviews.sub[18, ]
 ```
 
 ```
-##   funny useful cool                user_id              review_id stars
-## 3     0      1    0 0hT2KtfLiobPvh6cDC8JQg IESLBzqUCLdSzSqm0eCSxQ     4
-##         date
-## 3 2012-06-14
-##                                                                           text
-## 3 love the gyro plate. Rice is so good and I also dig their candy selection :)
-##     type            business_id
-## 3 review 6oRAC4uyJCsJl1X0WZpVSA
+##       funny useful cool                user_id              review_id
+## 86819     0      0    0 Ts367xA-JqA4s13qY0awbg _RDx1GXkVG8Xxk_VYqZrBg
+##       stars       date                                           text
+## 86819     2 2012-09-27 Totally flavorless.  I'd rather have in-n-out.
+##         type            business_id
+## 86819 review Cr2JNnewX53TYd9w6qw6Jw
 ```
 
 
 ---
 
-## Initial Data Analysis
+## Data Analysis
 ...
 
 ---
@@ -87,7 +85,7 @@ reviews.data[3, ]
 
 ## City Data
 <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
-<!-- Wed Apr 24 14:48:31 2013 -->
+<!-- Fri Apr 26 18:56:24 2013 -->
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Top ten cities by the number of checkins in that city </CAPTION>
 <TR> <TH> city </TH> <TH> reviews </TH> <TH> checkins </TH> <TH> percentage </TH>  </TR>
@@ -113,14 +111,9 @@ reviews.data[3, ]
 
 ---
 
-## Exploratory Data Analysis
-...
-
----
-
 ## Useful Users
 <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
-<!-- Wed Apr 24 14:48:32 2013 -->
+<!-- Fri Apr 26 18:56:25 2013 -->
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Top ten users in the Yelp data by total number of useful votes per review (Minimum 100 reviews). </CAPTION>
 <TR> <TH> funny </TH> <TH> useful </TH> <TH> cool </TH> <TH> name </TH> <TH> average_stars </TH> <TH> review_count </TH> <TH> good </TH>  </TR>
@@ -144,3 +137,87 @@ reviews.data[3, ]
 ![plot of chunk usefulbystars](figure/usefulbystars.png) 
 
 
+## Preprocessing and Classification
+
+---
+
+## R Memory and Computation Time Issues
+
+---
+
+## Classification
+
+---
+
+
+
+
+
+## Characteristics of Useful Reviews
+<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+<!-- Fri Apr 26 18:56:41 2013 -->
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> Summary statistics for all reviews by whether the review was voted as useful or not.  The variables include the number of characters, percentage of letters capitalized, percentage of letters that are punctuation characters, paragraphs per length of review, the number of useful votes for the particular user writing the review over the total number of reviews for that user, and the average star rating of the business being reviewed. </CAPTION>
+<TR> <TH>  </TH> <TH> useful_bin </TH> <TH> numChar </TH> <TH> numCap </TH> <TH> numPunc </TH> <TH> numPar </TH> <TH> useful.per </TH> <TH> average_stars </TH>  </TR>
+  <TR> <TD align="right"> 1 </TD> <TD> FALSE </TD> <TD align="right"> 536.6503 </TD> <TD align="right"> 0.0303 </TD> <TD align="right"> 0.0403 </TD> <TD align="right"> 0.0031 </TD> <TD align="right"> 0.8648 </TD> <TD align="right"> 3.5536 </TD> </TR>
+  <TR> <TD align="right"> 2 </TD> <TD> TRUE </TD> <TD align="right"> 830.0923 </TD> <TD align="right"> 0.0297 </TD> <TD align="right"> 0.0428 </TD> <TD align="right"> 0.0048 </TD> <TD align="right"> 2.0467 </TD> <TD align="right"> 3.5290 </TD> </TR>
+   <A NAME=tab:SummaryTable></A>
+</TABLE>
+
+
+---
+
+
+
+
+## Random Forest Importance
+<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+<!-- Fri Apr 26 18:56:44 2013 -->
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> A list of the variables and their importance as determined by the randomForest algorithm.  We ultimately selected six of these variables, numChar, numPar, numCap, and numPunc, useful.per, and average stars for use in our SVM. </CAPTION>
+<TR> <TH>  </TH> <TH> FALSE </TH> <TH> TRUE </TH> <TH> MeanDecreaseAccuracy </TH> <TH> MeanDecreaseGini </TH>  </TR>
+  <TR> <TD align="right"> stars </TD> <TD align="right"> 0.0057 </TD> <TD align="right"> 0.0035 </TD> <TD align="right"> 0.0044 </TD> <TD align="right"> 349.3500 </TD> </TR>
+  <TR> <TD align="right"> numChar </TD> <TD align="right"> 0.0154 </TD> <TD align="right"> 0.0159 </TD> <TD align="right"> 0.0157 </TD> <TD align="right"> 1451.2652 </TD> </TR>
+  <TR> <TD align="right"> numCap </TD> <TD align="right"> -0.0007 </TD> <TD align="right"> 0.0024 </TD> <TD align="right"> 0.0011 </TD> <TD align="right"> 1221.3895 </TD> </TR>
+  <TR> <TD align="right"> numPunc </TD> <TD align="right"> 0.0009 </TD> <TD align="right"> 0.0064 </TD> <TD align="right"> 0.0041 </TD> <TD align="right"> 1246.2444 </TD> </TR>
+  <TR> <TD align="right"> numPar </TD> <TD align="right"> 0.0127 </TD> <TD align="right"> 0.0068 </TD> <TD align="right"> 0.0093 </TD> <TD align="right"> 817.7550 </TD> </TR>
+  <TR> <TD align="right"> useful.per </TD> <TD align="right"> 0.0782 </TD> <TD align="right"> 0.0934 </TD> <TD align="right"> 0.0871 </TD> <TD align="right"> 2274.3753 </TD> </TR>
+  <TR> <TD align="right"> average_stars </TD> <TD align="right"> -0.0146 </TD> <TD align="right"> 0.0342 </TD> <TD align="right"> 0.0138 </TD> <TD align="right"> 1111.7662 </TD> </TR>
+   <A NAME=tab:RandomForest></A>
+</TABLE>
+
+
+---
+
+## Our Final SVM
+
+---
+
+## Truth Table
+<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+<!-- Fri Apr 26 18:56:45 2013 -->
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> Truth Table for the results of our model </CAPTION>
+<TR> <TH>  </TH> <TH> FALSE </TH> <TH> TRUE </TH>  </TR>
+  <TR> <TD align="right"> FALSE </TD> <TD align="right"> 527 </TD> <TD align="right"> 340 </TD> </TR>
+  <TR> <TD align="right"> TRUE </TD> <TD align="right"> 264 </TD> <TD align="right"> 869 </TD> </TR>
+   <A NAME=tab:SVM></A>
+</TABLE>
+
+
+---
+
+## Results
+<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+<!-- Fri Apr 26 18:56:45 2013 -->
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> Individual and overall class error rates for our model </CAPTION>
+<TR> <TH>  </TH> <TH> Type </TH> <TH> ErrorRates </TH>  </TR>
+  <TR> <TD align="right"> 1 </TD> <TD> Useful Error </TD> <TD align="right"> 0.2330 </TD> </TR>
+  <TR> <TD align="right"> 2 </TD> <TD> Not Useful Error </TD> <TD align="right"> 0.3922 </TD> </TR>
+  <TR> <TD align="right"> 3 </TD> <TD> Overall Error </TD> <TD align="right"> 0.3126 </TD> </TR>
+   <A NAME=tab:ClassErrorTable></A>
+</TABLE>
+
+
+---
