@@ -43,7 +43,7 @@ The dataset that we have includes reviews of the different businesses written by
 \section*{Data}
 We began by taking the unparsed json files from Yelp and producing three main datasets: business.data, user.data, and reviews.data.
 
-business.data includes information for every business in the Phoenix area that yelp has recorded and includes the following variables (name of business, business id, address, type of business, \# of reviews, \# of checkins, \# of stars).  Because of the aim of our study the business dataset will be used as an initial data analysis to examine the differences between businesses and try to identify any potential concerns in the data.  Concerns we will be aware of include an employee from the business giving the business many “false” positive reviews of a business.  Also we can use this data to identify differences among businesses and analyze businesses that have a high percentage of reviews per check in.
+business.data includes information for every business in the Phoenix area that yelp has recorded and includes the following variables (name of business, business id, address, type of business, \# of reviews, \# of check-ins, \# of stars).  Because of the aim of our study the business dataset will be used as an initial data analysis to examine the differences between businesses and try to identify any potential concerns in the data.  Concerns we will be aware of include an employee from the business giving the business many “false” positive reviews of a business.  Also we can use this data to identify differences among businesses and analyze businesses that have a high percentage of reviews per check in.
 
 user.data has all of the different information for each user that yelp keeps track of.  Within this dataset we have for each user the variables (name of user, user id, \# of funny reviews, \# of useful reviews, \# of cool reviews, \# average stars, total \# reviews).  Different from the business.json data there are some important variables in this dataset that is given in the test set that we can use to better our analysis of useful reviews.  By looking at the total number of reviews the user has and their average star count possibly we can identify a trend with these two variables and see how it pertains to predicting whether the users reviews are classified as useful or not.  There are also other variables given in this dataset that we can use to further explore our data that is given, however those will not be useful in our final analysis of predicting useful reviews.
 
@@ -242,7 +242,7 @@ We initially fit all of the variables into a random forest classifier and used m
         cls1 <- (table[1,2] / (table[1,2] + table[1,1]))
         cls2 <- (table[2,1] / (table[2,2] + table[2,1]))
         
-        return(list(overall = mean(c(cls1, cls2)), usefulError = cls1, notusefulError = cls2))
+        return(list(overall = mean(c(cls1, cls2)), usefulError = cls2, notusefulError = cls1))
     }
 
     reviews.train <- reviews.final[1:18000, ]
@@ -279,7 +279,6 @@ The individual class error rates, as well as the overall error rates, are displa
 \section*{Conclusion}
 From our initial data analysis of the Yelp dataset we found that useful votes are correlated with both cool and funny votes, most businesses have an average star rating of four stars and, unsurprisingly, Yelp users who wrote the most reviews also had the most useful votes.  The biggest challenge to this project was computational in nature.  We were unable to use the text data in its entirety to predict review usefulness.  Using summary statistics on the text data we were able to achieve around \Sexpr{100 * (1 - classError(table(predict.svm, reviews.test.truth))$overall)} percent accuracy using an SVM.  We can conclude from our results that review usefulness can be  partially predicted solely on the text structure and user information rather than content of the review.  Useful reviews tended to be longer, structured in paragraphs and with punctuation.  Reviews were more likely to be useful when written by users who have previously submitted useful reviews.  With additional resources we would expand our analysis to a model containing structure, text content, user information and business information.  We feel we can drastically improve our results by including text data and background information on users and businesses (number of reviews, average rating of reviews).
 
-% APPENDIX : Role each group member played
 \section*{Appendix}
 Jim: Primarily worked on the introduction and data analysis section of the paper identifying what variables we believed were most useful for the model outside of the text data.  Made graphs identifying trends of what is correlated with useful and looked into different aspects of the dataset. 
 
