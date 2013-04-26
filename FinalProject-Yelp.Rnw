@@ -123,7 +123,7 @@ reviews.json is our primary dataset for predicting whether a review is useful or
     reviews.sub <- reviews.data[data.sample, ]
 
     rm(reviews.json)
-    rm(users.json)
+    rm(user.json)
     rm(business.json)
     rm(checkin.json)
 @
@@ -233,7 +233,13 @@ reviews were voted as useful (seen in Table \ref{tab:SummaryTable}).
     reviews.sub$hasDont <- sapply(reviews.sub$text, function(x) { length(grep(" don'*t ", tolower(as.character(x)))) > 0})
     reviews.sub$hasTime <- sapply(reviews.sub$text, function(x) { length(grep(" time[sd]* ", tolower(as.character(x)))) > 0})
 
-    reviews.final <- merge(reviews.sub, user.data[,c("user_id", "average_stars", "cool", "funny", "useful")], by = "user_id", all.x = TRUE, suffixes = c(".review", ".user"))
+    reviews.final <- merge(reviews.sub, user.data[,c("user_id", "average_stars", "useful", "review_count")], by = "user_id", all.x = TRUE, suffixes = c(".review", ".user"))
+
+    reviews.final$useful.user[is.na(reviews.final$useful.user)] <- 0
+    reviews.final$review_count[is.na(reviews.final$review_count)] <- 0
+    reviews.final$average_stars[is.na(reviews.final$average_stars)] <- 0
+
+    reviews.final$useful.per <- reviews.final$useful.user / (reviews.final$review_count + 1)
     
     reviews.final$useful_bin <- reviews.final$useful.review > 0
     summary.sub <- ddply(reviews.final, .(useful_bin), summarise, numChar = mean(numChar), numCap = mean(numCap), numPunc = mean(numPunc), numPar = mean(numPar), hasDont = mean(hasDont), hasTime = mean(hasTime))
@@ -269,12 +275,13 @@ variables. The results are displayed in Table \ref{tab:RandomForest}.
     }
 
     reviews.train <- reviews.final[1:18000, ]
-    reviews.test <- reviews.final[18001:20000, -c(1:3, ncol(reviews.final))]
-    reviews.test.truth <- reviews.final[18001:20000, ncol(reviews.final)]
+    reviews.test <- reviews.final[18001:20000,]
+    reviews.test <- reviews.test[complete.cases(reviews.test),]
+    reviews.test.truth <- reviews.test$useful_bin
 
-    reviews.rf <- randomForest(factor(useful_bin) ~ stars+numChar+numCap+numPunc+numPar+hasDont+hasTime, data = reviews.train, importance = TRUE, ntree = 1000)
+    reviews.rf <- randomForest(factor(useful_bin) ~ stars+numChar+numCap+numPunc+numPar+hasDont+hasTime+useful.per+average_stars, data = reviews.train, importance = TRUE, ntree = 1000)
 
-    reviews.svm <- svm(factor(useful_bin) ~ numChar+numPar+numPunc, data = reviews.train, kernel = "linear")
+    reviews.svm <- svm(factor(useful_bin) ~ numChar+numPar+numPunc+numCap+useful.per+average_stars, data = reviews.train, kernel = "linear")
 
     predict.svm <- predict(reviews.svm, reviews.test)
     #classError(table(predict.svm, reviews.test.truth))
