@@ -49,7 +49,7 @@ user.json has all of the different information for each user that yelp keeps tra
 
 reviews.json is our primary dataset for predicting whether a review is useful or not because it has every review recorded and all of the different information recorded by yelp for each review.  These variables include (review id, user id, business id, \# votes funny, \# votes useful, \# votes cool, \# stars given, date of review, text).  Based on the goals of our study we will only be concerned with whether the review was useful, the stars given by the user, and the text data to identify the unique aspects of a review that others find to be useful.
 
-\section*{Initial Data Analysis}
+\section*{Data Analysis}
 
 <<DataProcessing, echo=FALSE, cache=TRUE>>=
     processData <- function(json) {
@@ -161,8 +161,6 @@ Figure \ref{fig:CheckinsBoxplot} shows boxplots of the number of checkins to eac
         ylab("Number of checkins")
 @
 
-\section*{Exploratory Data Analysis}
-
 Table \ref{tab:UsefulTable} displays the top ten users by the total number of useful votes divided by the total number of reviews for that user.  We have selected only users who have made at least 100 reviews.  We felt this would provide us with valuable information about what characteristics the ``best" reviewers possess.
 
 <<UsefulTable, echo=FALSE, results='asis'>>=
@@ -230,8 +228,8 @@ reviews were voted as useful (seen in Table \ref{tab:SummaryTable}).
 
 
     important.words <- read.csv("m.csv")
-    reviews.sub$hasDont <- sapply(reviews.sub$text, function(x) { length(grep(" don'*t ", tolower(as.character(x)))) > 0})
-    reviews.sub$hasTime <- sapply(reviews.sub$text, function(x) { length(grep(" time[sd]* ", tolower(as.character(x)))) > 0})
+  #  reviews.sub$hasDont <- sapply(reviews.sub$text, function(x) { length(grep(" don'*t ", tolower(as.character(x)))) > 0})
+  #  reviews.sub$hasTime <- sapply(reviews.sub$text, function(x) { length(grep(" time[sd]* ", tolower(as.character(x)))) > 0})
 
     reviews.final <- merge(reviews.sub, user.data[,c("user_id", "average_stars", "useful", "review_count")], by = "user_id", all.x = TRUE, suffixes = c(".review", ".user"))
 
@@ -242,20 +240,20 @@ reviews were voted as useful (seen in Table \ref{tab:SummaryTable}).
     reviews.final$useful.per <- reviews.final$useful.user / (reviews.final$review_count + 1)
     
     reviews.final$useful_bin <- reviews.final$useful.review > 0
-    summary.sub <- ddply(reviews.final, .(useful_bin), summarise, numChar = mean(numChar), numCap = mean(numCap), numPunc = mean(numPunc), numPar = mean(numPar), hasDont = mean(hasDont), hasTime = mean(hasTime))
+    summary.sub <- ddply(reviews.final, .(useful_bin), summarise, numChar = mean(numChar), numCap = mean(numCap), numPunc = mean(numPunc), numPar = mean(numPar), useful.per = mean(useful.per), average_stars = mean(average_stars))
 
-    print(xtable(summary.sub, label = "tab:SummaryTable", caption = "Summary statistics for all reviews by whether the review was voted as useful or not.  The variables include the number of characters, percentage of letters capitalized, percentage of the review containing punctuation, the percentage of reviews that contain the word dont, and the percentage of reviews that contain the word time"), table.placement = 'H')
+    print(xtable(summary.sub, label = "tab:SummaryTable", caption = "Summary statistics for all reviews by whether the review was voted as useful or not.  The variables include the number of characters, percentage of letters capitalized, percentage of letters that are punctuation characters, paragraphs per length of review, the number of useful votes for the particular user writing the review over the total number of reviews for that user, and the average star rating of the business being reviewed.", digits = 4), table.placement = 'H')
 @
 
 The variables we considered were number of stars a review gave, number of characters
 in a review, number of capital letters used, number of punctuation marks used, number of
-paragraphs and whether or not the review contains the words ``time" and ``don’t".
+paragraphs, the useful votes for that user per review, and the average star rating of the business being reviewed.
 We reasoned that longer reviews contained more useful information and useful reviews are
 more likely to contain proper punctuation, proper capitalization and more likely to be structured
 in paragraphs. We also calculated the word frequencies for useful reviews versus the word
 frequencies for unuseful reviews. Based on word frequencies we calculated the probabilities
-of words that are likely to appear in useful versus unuseful reviews. We found that the words
-“don’t” and “time” are much more likely to appear in a useful review than an unuseful review.
+of words that are likely to appear in useful versus unuseful reviews.  As expected, we found that users who write reviews that have previously been voted as useful are more likely to write useful reviews in the future.  We found that the star rating of businesses receiving useful reviews was pretty consistent with those that received unuseful reviews.  Finally, although it was not displayed in this summary table, we found that the words
+``don’t" and ``time" are much more likely to appear in a useful review than an unuseful review.
 Additionally, we reasoned that a review with a higher star rating would be more likely to have a
 useful explanation to justify the star rating.
 
@@ -271,7 +269,7 @@ variables. The results are displayed in Table \ref{tab:RandomForest}.
         #cat(paste("Useful:", cls2, "\n"))
         #cat(paste("Total:", mean(c(cls1, cls2)), "\n"))
         
-        return(mean(c(cls1, cls2)))
+        return(list(overall = mean(c(cls1, cls2)), usefulError = cls1, notusefulError = cls2))
     }
 
     reviews.train <- reviews.final[1:18000, ]
@@ -279,7 +277,7 @@ variables. The results are displayed in Table \ref{tab:RandomForest}.
     reviews.test <- reviews.test[complete.cases(reviews.test),]
     reviews.test.truth <- reviews.test$useful_bin
 
-    reviews.rf <- randomForest(factor(useful_bin) ~ stars+numChar+numCap+numPunc+numPar+hasDont+hasTime+useful.per+average_stars, data = reviews.train, importance = TRUE, ntree = 1000)
+    reviews.rf <- randomForest(factor(useful_bin) ~ stars+numChar+numCap+numPunc+numPar+useful.per+average_stars, data = reviews.train, importance = TRUE, ntree = 1000)
 
     reviews.svm <- svm(factor(useful_bin) ~ numChar+numPar+numPunc+numCap+useful.per+average_stars, data = reviews.train, kernel = "linear")
 
@@ -289,24 +287,28 @@ variables. The results are displayed in Table \ref{tab:RandomForest}.
 
 
 <<RandomForest, echo=FALSE, results='asis'>>=
-    print(xtable(reviews.rf$importance, label = "tab:RandomForest", caption = "A list of the variables and their importance as determined by the randomForest algorithm.  We ultimately selected three of these variables, numChar, numCap, and numPunc for use in our SVM."), table.placement = 'H')
+    print(xtable(reviews.rf$importance, label = "tab:RandomForest", caption = "A list of the variables and their importance as determined by the randomForest algorithm.  We ultimately selected six of these variables, numChar, numPar, numCap, and numPunc, useful.per, and average stars for use in our SVM.", digits = 4), table.placement = 'H')
 @
 
 From the previous importance results, we fit a model on an 18,000 document subset of our
 original dataset to predict usefulness based on the number of characters, capitalization and
 number of paragraphs. We tested our model on a separate randomly selected 2,000 document
-subset of our original dataset. Our overall accuracy is \Sexpr{classError(table(predict.svm, reviews.test.truth))}\%. The full classification results can be seen in the confusion matrix displayed in Table \ref{tab:SVM}.
+subset of our original dataset. Our overall error rate is \Sexpr{classError(table(predict.svm, reviews.test.truth))$overall}\%. The full classification results can be seen in the confusion matrix displayed in Table \ref{tab:SVM}.
 
 <<SVM, echo=FALSE, results='asis'>>=
     tbl <- table(predict.svm, reviews.test.truth)
-    colnames(tbl) <- c("True Useful", "True Not Useful")
-    rownames(tbl) <- c("Predicted Useful", "Predicted Not Useful")
 
-    print(xtable(table(predict.svm, reviews.test.truth), label = "tab:SVM", caption = "Truth Table for the results of our model"), table.placement = 'H')
+    print(xtable(tbl, label = "tab:SVM", caption = "Truth Table for the results of our model"), table.placement = 'H')
+@
+
+The individual class error rates, as well as the overall error rates, are displayed in Table \ref{tab:ClassErrorTable}.  It can be seen that our model tends to predict reviews to be useful more frequently than it should.
+
+<<ClassErrorTable, echo=FALSE, results='asis'>>=
+    print(xtable(data.frame(Type = c("Useful Error", "Not Useful Error", "Overall Error"), ErrorRates = c(classError(tbl)$usefulError, classError(tbl)$notusefulError, classError(tbl)$overall)), label = "tab:ClassErrorTable", caption = "Individual and overall class error rates for our model"), table.placement = 'H')
 @
 
 \section*{Conclusion}
-From our initial data analysis of the Yelp dataset we found that useful votes are correlated with both cool and funny votes, most businesses have an average star rating of four stars and, unsurprisingly, Yelp users who wrote the most reviews also had the most useful votes.  The biggest challenge to this project was computational in nature.  We were unable to use the text data in its entirety to predict review usefulness.  Using summary statistics on the text data we were able to achieve around 62 percent accuracy using an SVM.  We can conclude from our results that review usefulness can be  partially predicted solely on the text structure rather than content.  Useful reviews tended to be longer, structured in paragraphs and with punctuation.  With additional resources we would expand our analysis to a model containing structure, text content, user information and business information.  We feel we can drastically improve our results by including text data and background information on users and businesses (number of reviews, average rating of reviews).
+From our initial data analysis of the Yelp dataset we found that useful votes are correlated with both cool and funny votes, most businesses have an average star rating of four stars and, unsurprisingly, Yelp users who wrote the most reviews also had the most useful votes.  The biggest challenge to this project was computational in nature.  We were unable to use the text data in its entirety to predict review usefulness.  Using summary statistics on the text data we were able to achieve around \Sexpr{100 * (1 - classError(table(predict.svm, reviews.test.truth))$overall)} percent accuracy using an SVM.  We can conclude from our results that review usefulness can be  partially predicted solely on the text structure rather than content.  Useful reviews tended to be longer, structured in paragraphs and with punctuation.  With additional resources we would expand our analysis to a model containing structure, text content, user information and business information.  We feel we can drastically improve our results by including text data and background information on users and businesses (number of reviews, average rating of reviews).
 
 % APPENDIX : Role each group member played
 
