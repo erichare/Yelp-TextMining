@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="libraries/frameworks/io2012/phone.css" 
     media="only screen and (max-device-width: 480px)" >
   <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
-  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <link rel="stylesheet" href="libraries/highlighters/prettify/css/tomorrow.css" />
   <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->
   <script data-main="libraries/frameworks/io2012/js/slides" 
     src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
@@ -43,12 +43,46 @@
     <h2>Introduction</h2>
   </hgroup>
   <article>
-    
+    <ul>
+<li>Yelp is a site used to find the best and worst businesses.</li>
+<li>Reviews of businesses are written by Yelp users</li>
+<li>Naturally, some reviews may be more useful to users than others.</li>
+<li>Therefore, Yelp has a vested interest in presenting the most useful reviews to the user first.</li>
+</ul>
+
   </article>
   <!-- Presenter Notes -->
 </slide>
 
       <slide class="" id="slide-2" style="background:;">
+  <hgroup>
+    <h2>Objective</h2>
+  </hgroup>
+  <article>
+    <p>Our goal is to predict whether a review will ultimately be rated as &quot;useful&quot; by Yelp users before people have had a chance to vote.  In other words, what characteristics do useful reviews tend to have?</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>Data</h2>
+  </hgroup>
+  <article>
+    <ul>
+<li>Four JSON files (businesses, checkins, reviews, and users)</li>
+<li>We parsed these into three data frames (businesses, reviews, users)</li>
+<li>Businesses: 8282 Observations, 14 Variables</li>
+<li>Reviews (Subset): 20000 Observations, 10 Variables</li>
+<li>Users: 43873 Observations, eight Variables</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+      <slide class="" id="slide-4" style="background:;">
   <hgroup>
     <h2>Data: Businesses</h2>
   </hgroup>
@@ -68,7 +102,7 @@
   <!-- Presenter Notes -->
 </slide>
 
-      <slide class="" id="slide-3" style="background:;">
+      <slide class="" id="slide-5" style="background:;">
   <hgroup>
     <h2>Data: Users</h2>
   </hgroup>
@@ -86,7 +120,7 @@
   <!-- Presenter Notes -->
 </slide>
 
-      <slide class="" id="slide-4" style="background:;">
+      <slide class="" id="slide-6" style="background:;">
   <hgroup>
     <h2>Data: Reviews</h2>
   </hgroup>
@@ -106,36 +140,27 @@
   <!-- Presenter Notes -->
 </slide>
 
-      <slide class="" id="slide-5" style="background:;">
-  <hgroup>
-    <h2>Data Analysis</h2>
-  </hgroup>
-  <article>
-    <p>...</p>
-
-  </article>
-  <!-- Presenter Notes -->
-</slide>
-
-      <slide class="" id="slide-6" style="background:;">
+      <slide class="" id="slide-7" style="background:;">
   <hgroup>
     <h2>Useful vs Funny/Cool</h2>
   </hgroup>
   <article>
-    <p><img src="figure/usefulvfunny.png" alt="plot of chunk usefulvfunny"> </p>
+    <p><img src="figure/usefulvfunny.png" alt="Useful votes vs cool (blue) and funny(red) votes.  This plot indicates that a review which is voted as being funny and/or cool is also likely to be voted as being useful."> </p>
+
+<p>Useful votes vs cool (blue) and funny(red) votes.  This plot indicates that a review which is voted as being funny and/or cool is also likely to be voted as being useful.</p>
 
   </article>
   <!-- Presenter Notes -->
 </slide>
 
-      <slide class="" id="slide-7" style="background:;">
+      <slide class="" id="slide-8" style="background:;">
   <hgroup>
     <h2>City Data</h2>
   </hgroup>
   <article>
-    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+    <!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
 
-<!-- Fri Apr 26 18:56:24 2013 -->
+<!-- Sun Apr 28 12:58:38 2013 -->
 
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Top ten cities by the number of checkins in that city </CAPTION>
@@ -157,25 +182,27 @@
   <!-- Presenter Notes -->
 </slide>
 
-      <slide class="" id="slide-8" style="background:;">
+      <slide class="" id="slide-9" style="background:;">
   <hgroup>
     <h2>Checkins</h2>
   </hgroup>
   <article>
-    <p><img src="figure/checkins.png" alt="plot of chunk checkins"> </p>
+    <p><img src="figure/checkins.png" alt="Number of checkins to each business by average star rating of that business."> </p>
+
+<p>Number of checkins to each business by average star rating of that business.</p>
 
   </article>
   <!-- Presenter Notes -->
 </slide>
 
-      <slide class="" id="slide-9" style="background:;">
+      <slide class="" id="slide-10" style="background:;">
   <hgroup>
     <h2>Useful Users</h2>
   </hgroup>
   <article>
-    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+    <!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
 
-<!-- Fri Apr 26 18:56:25 2013 -->
+<!-- Sun Apr 28 12:58:39 2013 -->
 
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Top ten users in the Yelp data by total number of useful votes per review (Minimum 100 reviews). </CAPTION>
@@ -197,35 +224,44 @@
   <!-- Presenter Notes -->
 </slide>
 
-      <slide class="" id="slide-10" style="background:;">
+      <slide class="" id="slide-11" style="background:;">
   <hgroup>
     <h2>Usefulness by Star Rating</h2>
   </hgroup>
   <article>
-    <p><img src="figure/usefulbystars.png" alt="plot of chunk usefulbystars"> </p>
+    <p><img src="figure/usefulbystars.png" alt="Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews."> </p>
 
-<h2>Preprocessing and Classification</h2>
+<p>Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews.</p>
 
-  </article>
-  <!-- Presenter Notes -->
-</slide>
-
-      <slide class="" id="slide-11" style="background:;">
-  <hgroup>
-    <h2>R Memory and Computation Time Issues</h2>
-  </hgroup>
-  <article>
-    
   </article>
   <!-- Presenter Notes -->
 </slide>
 
       <slide class="" id="slide-12" style="background:;">
   <hgroup>
-    <h2>Classification</h2>
+    <h2>R Memory and Computation Time Issues</h2>
   </hgroup>
   <article>
-    
+    <!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
+
+<!-- Sun Apr 28 12:58:40 2013 -->
+
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> Document 1: "What is this, a center for ants?"<br>Document 2: "what is the meaning of life?" </CAPTION>
+<TR> <TH>  </TH> <TH> Doc 1 </TH> <TH> Doc 2 </TH>  </TR>
+  <TR> <TD align="right"> what </TD> <TD align="right"> 1 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> is </TD> <TD align="right"> 1 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> this </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> a </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> center </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> for </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> ants </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> the </TD> <TD align="right"> 0 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> meaning </TD> <TD align="right"> 0 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> of </TD> <TD align="right"> 0 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> life </TD> <TD align="right"> 0 </TD> <TD align="right"> 1 </TD> </TR>
+   </TABLE>
+
   </article>
   <!-- Presenter Notes -->
 </slide>
@@ -235,9 +271,9 @@
     <h2>Characteristics of Useful Reviews</h2>
   </hgroup>
   <article>
-    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+    <!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
 
-<!-- Fri Apr 26 18:56:41 2013 -->
+<!-- Sun Apr 28 12:58:51 2013 -->
 
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Summary statistics for all reviews by whether the review was voted as useful or not.  The variables include the number of characters, percentage of letters capitalized, percentage of letters that are punctuation characters, paragraphs per length of review, the number of useful votes for the particular user writing the review over the total number of reviews for that user, and the average star rating of the business being reviewed. </CAPTION>
@@ -256,9 +292,9 @@
     <h2>Random Forest Importance</h2>
   </hgroup>
   <article>
-    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+    <!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
 
-<!-- Fri Apr 26 18:56:44 2013 -->
+<!-- Sun Apr 28 12:58:53 2013 -->
 
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> A list of the variables and their importance as determined by the randomForest algorithm.  We ultimately selected six of these variables, numChar, numPar, numCap, and numPunc, useful.per, and average stars for use in our SVM. </CAPTION>
@@ -282,7 +318,8 @@
     <h2>Our Final SVM</h2>
   </hgroup>
   <article>
-    
+    <p>Useful ~ numChar+numPar+numPunc+numCap+useful.per+average_stars</p>
+
   </article>
   <!-- Presenter Notes -->
 </slide>
@@ -292,9 +329,9 @@
     <h2>Truth Table</h2>
   </hgroup>
   <article>
-    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+    <!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
 
-<!-- Fri Apr 26 18:56:45 2013 -->
+<!-- Sun Apr 28 12:58:53 2013 -->
 
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Truth Table for the results of our model </CAPTION>
@@ -313,9 +350,9 @@
     <h2>Results</h2>
   </hgroup>
   <article>
-    <!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
+    <!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
 
-<!-- Fri Apr 26 18:56:45 2013 -->
+<!-- Sun Apr 28 12:58:53 2013 -->
 
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Individual and overall class error rates for our model </CAPTION>
@@ -354,8 +391,14 @@
 <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
 <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery-1.7.min.js"><\/script>')</script>
 <!-- Load Javascripts for Widgets -->
-<!-- LOAD HIGHLIGHTER JS FILES -->
-<script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-<!-- DONE LOADING HIGHLIGHTER JS FILES -->
-</html>
+<!-- Google Prettify -->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script src='libraries/highlighters/prettify/js/lang-r.js'></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint ";
+  }
+  prettyPrint();
+</script>
+<!-- End Google Prettify --></html>

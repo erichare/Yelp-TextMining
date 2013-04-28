@@ -4,7 +4,7 @@ subtitle    :
 author      : Jim Curro, Eric Hare, Alex Shum
 job         : Apr. 29, 2013
 framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
-highlighter : highlight.js  # {highlight.js, prettify, highlight}
+highlighter : prettify  # {highlight.js, prettify, highlight}
 hitheme     : tomorrow      # 
 widgets     : []            # {mathjax, quiz, bootstrap}
 mode        : selfcontained # {standalone, draft}
@@ -23,6 +23,10 @@ mode        : selfcontained # {standalone, draft}
 ```
 
 ## Introduction
+- Yelp is a site used to find the best and worst businesses.
+- Reviews of businesses are written by Yelp users
+- Naturally, some reviews may be more useful to users than others.
+- Therefore, Yelp has a vested interest in presenting the most useful reviews to the user first.
 
 ```{r process, echo=FALSE, cache=TRUE}
     processData <- function(json) {
@@ -107,6 +111,20 @@ mode        : selfcontained # {standalone, draft}
 
 ---
 
+## Objective
+Our goal is to predict whether a review will ultimately be rated as "useful" by Yelp users before people have had a chance to vote.  In other words, what characteristics do useful reviews tend to have?
+
+---
+
+## Data
+- Four JSON files (businesses, checkins, reviews, and users)
+- We parsed these into three data frames (businesses, reviews, users)
+- Businesses: 8282 Observations, 14 Variables
+- Reviews (Subset): 20000 Observations, 10 Variables
+- Users: 43873 Observations, eight Variables
+
+---
+
 ## Data: Businesses
 ```{r datapeek1}
     head(business.data, n = 1)
@@ -128,18 +146,14 @@ mode        : selfcontained # {standalone, draft}
 
 ---
 
-## Data Analysis
-...
-
----
-
 ## Useful vs Funny/Cool
-```{r usefulvfunny, echo=FALSE}
+```{r usefulvfunny, echo=FALSE, fig.show='hold', fig.align='center', fig.cap='Useful votes vs cool (blue) and funny(red) votes.  This plot indicates that a review which is voted as being funny and/or cool is also likely to be voted as being useful.', fig.pos='H', fig.width=6, fig.height=6}
     qplot(cool, useful, data = user.data, colour = I("blue")) + 
         geom_point(aes(x = funny, y = useful), colour = I("red")) +
         xlab("Cool/Funny Votes") +
         ylab("Useful Votes")
 ```
+Useful votes vs cool (blue) and funny(red) votes.  This plot indicates that a review which is voted as being funny and/or cool is also likely to be voted as being useful.
 
 ---
 
@@ -163,11 +177,12 @@ mode        : selfcontained # {standalone, draft}
 ---
 
 ## Checkins
-```{r checkins, echo=FALSE}
+```{r checkins, echo=FALSE, fig.cap='Number of checkins to each business by average star rating of that business.', fig.pos='H', fig.width=6, fig.height=6}
     qplot(stars.f, log(checkins), data = business.data, geom = "boxplot", colour = stars.f) +
         xlab("Average star rating") +
         ylab("Number of checkins")
 ```
+Number of checkins to each business by average star rating of that business.
 
 ---
 
@@ -183,7 +198,7 @@ mode        : selfcontained # {standalone, draft}
 ---
 
 ## Usefulness by Star Rating
-```{r usefulbystars, echo=FALSE}
+```{r usefulbystars, echo=FALSE, fig.cap='Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews.', fig.pos='H', fig.width=6, fig.height=6}
     user.data$frc = '<50'
     user.data$frc[user.data$review_count > 50] = '50-200'
     user.data$frc[user.data$review_count > 200] = '200-500'
@@ -194,16 +209,29 @@ mode        : selfcontained # {standalone, draft}
         xlab("Average star rating") +
         ylab("Number of useful reviews")
 ```
-
-## Preprocessing and Classification
+Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews.
 
 ---
 
 ## R Memory and Computation Time Issues
+```{r memory, echo=FALSE, results='asis'}
 
----
+doc1 = "What is this, a center for ants?"
+doc2 = "what is the meaning of life?"
 
-## Classification
+rnames = c("Doc 1", "Doc 2")
+cnames = c("what", "is", "this", "a", "center", "for", "ants", "the", "meaning", "of", "life")
+
+c1 = c(1,1,1,1,1,1,1,0,0,0,0)
+c2 = c(1,1,0,0,0,0,0,1,1,1,1)
+
+m = data.frame(rbind(c1,c2))
+rownames(m) = rnames
+colnames(m) = cnames
+m = t(m)
+
+print(xtable(m, caption = "Document 1: \"What is this, a center for ants?\"<br>Document 2: \"what is the meaning of life?\"", digits = 0), table.placement = "H", type = "html")
+```
 
 ---
 
@@ -229,7 +257,6 @@ mode        : selfcontained # {standalone, draft}
     summary.sub <- ddply(reviews.final, .(useful_bin), summarise, numChar = mean(numChar), numCap = mean(numCap), numPunc = mean(numPunc), numPar = mean(numPar), useful.per = mean(useful.per), average_stars = mean(average_stars))
 
 ```
-
 
 ## Characteristics of Useful Reviews
 ```{r usefulrevs, echo=FALSE, results='asis'}
@@ -266,6 +293,7 @@ mode        : selfcontained # {standalone, draft}
 ---
 
 ## Our Final SVM
+Useful ~ numChar+numPar+numPunc+numCap+useful.per+average_stars
 
 ---
 

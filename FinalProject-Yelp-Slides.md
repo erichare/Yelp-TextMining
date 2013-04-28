@@ -4,7 +4,7 @@ subtitle    :
 author      : Jim Curro, Eric Hare, Alex Shum
 job         : Apr. 29, 2013
 framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
-highlighter : highlight.js  # {highlight.js, prettify, highlight}
+highlighter : prettify  # {highlight.js, prettify, highlight}
 hitheme     : tomorrow      # 
 widgets     : []            # {mathjax, quiz, bootstrap}
 mode        : selfcontained # {standalone, draft}
@@ -14,9 +14,27 @@ mode        : selfcontained # {standalone, draft}
 
 
 ## Introduction
+- Yelp is a site used to find the best and worst businesses.
+- Reviews of businesses are written by Yelp users
+- Naturally, some reviews may be more useful to users than others.
+- Therefore, Yelp has a vested interest in presenting the most useful reviews to the user first.
 
 
 
+
+---
+
+## Objective
+Our goal is to predict whether a review will ultimately be rated as "useful" by Yelp users before people have had a chance to vote.  In other words, what characteristics do useful reviews tend to have?
+
+---
+
+## Data
+- Four JSON files (businesses, checkins, reviews, and users)
+- We parsed these into three data frames (businesses, reviews, users)
+- Businesses: 8282 Observations, 14 Variables
+- Reviews (Subset): 20000 Observations, 10 Variables
+- Users: 43873 Observations, eight Variables
 
 ---
 
@@ -72,20 +90,16 @@ reviews.sub[18, ]
 
 ---
 
-## Data Analysis
-...
-
----
-
 ## Useful vs Funny/Cool
-![plot of chunk usefulvfunny](figure/usefulvfunny.png) 
+![Useful votes vs cool (blue) and funny(red) votes.  This plot indicates that a review which is voted as being funny and/or cool is also likely to be voted as being useful.](figure/usefulvfunny.png) 
 
+Useful votes vs cool (blue) and funny(red) votes.  This plot indicates that a review which is voted as being funny and/or cool is also likely to be voted as being useful.
 
 ---
 
 ## City Data
-<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
-<!-- Fri Apr 26 18:56:24 2013 -->
+<!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
+<!-- Sun Apr 28 12:58:38 2013 -->
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Top ten cities by the number of checkins in that city </CAPTION>
 <TR> <TH> city </TH> <TH> reviews </TH> <TH> checkins </TH> <TH> percentage </TH>  </TR>
@@ -106,14 +120,15 @@ reviews.sub[18, ]
 ---
 
 ## Checkins
-![plot of chunk checkins](figure/checkins.png) 
+![Number of checkins to each business by average star rating of that business.](figure/checkins.png) 
 
+Number of checkins to each business by average star rating of that business.
 
 ---
 
 ## Useful Users
-<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
-<!-- Fri Apr 26 18:56:25 2013 -->
+<!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
+<!-- Sun Apr 28 12:58:39 2013 -->
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Top ten users in the Yelp data by total number of useful votes per review (Minimum 100 reviews). </CAPTION>
 <TR> <TH> funny </TH> <TH> useful </TH> <TH> cool </TH> <TH> name </TH> <TH> average_stars </TH> <TH> review_count </TH> <TH> good </TH>  </TR>
@@ -134,28 +149,40 @@ reviews.sub[18, ]
 ---
 
 ## Usefulness by Star Rating
-![plot of chunk usefulbystars](figure/usefulbystars.png) 
+![Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews.](figure/usefulbystars.png) 
 
-
-## Preprocessing and Classification
+Displays for each user their number of useful reviews by the average stars that each user gives any review. The users are colored by the total number of reviews showing a clear trend in number of reviews and number of useful reviews.
 
 ---
 
 ## R Memory and Computation Time Issues
+<!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
+<!-- Sun Apr 28 12:58:40 2013 -->
+<TABLE border=1>
+<CAPTION ALIGN="bottom"> Document 1: "What is this, a center for ants?"<br>Document 2: "what is the meaning of life?" </CAPTION>
+<TR> <TH>  </TH> <TH> Doc 1 </TH> <TH> Doc 2 </TH>  </TR>
+  <TR> <TD align="right"> what </TD> <TD align="right"> 1 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> is </TD> <TD align="right"> 1 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> this </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> a </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> center </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> for </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> ants </TD> <TD align="right"> 1 </TD> <TD align="right"> 0 </TD> </TR>
+  <TR> <TD align="right"> the </TD> <TD align="right"> 0 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> meaning </TD> <TD align="right"> 0 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> of </TD> <TD align="right"> 0 </TD> <TD align="right"> 1 </TD> </TR>
+  <TR> <TD align="right"> life </TD> <TD align="right"> 0 </TD> <TD align="right"> 1 </TD> </TR>
+   </TABLE>
+
 
 ---
-
-## Classification
-
----
-
 
 
 
 
 ## Characteristics of Useful Reviews
-<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
-<!-- Fri Apr 26 18:56:41 2013 -->
+<!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
+<!-- Sun Apr 28 12:58:51 2013 -->
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Summary statistics for all reviews by whether the review was voted as useful or not.  The variables include the number of characters, percentage of letters capitalized, percentage of letters that are punctuation characters, paragraphs per length of review, the number of useful votes for the particular user writing the review over the total number of reviews for that user, and the average star rating of the business being reviewed. </CAPTION>
 <TR> <TH>  </TH> <TH> useful_bin </TH> <TH> numChar </TH> <TH> numCap </TH> <TH> numPunc </TH> <TH> numPar </TH> <TH> useful.per </TH> <TH> average_stars </TH>  </TR>
@@ -171,8 +198,8 @@ reviews.sub[18, ]
 
 
 ## Random Forest Importance
-<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
-<!-- Fri Apr 26 18:56:44 2013 -->
+<!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
+<!-- Sun Apr 28 12:58:53 2013 -->
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> A list of the variables and their importance as determined by the randomForest algorithm.  We ultimately selected six of these variables, numChar, numPar, numCap, and numPunc, useful.per, and average stars for use in our SVM. </CAPTION>
 <TR> <TH>  </TH> <TH> FALSE </TH> <TH> TRUE </TH> <TH> MeanDecreaseAccuracy </TH> <TH> MeanDecreaseGini </TH>  </TR>
@@ -190,12 +217,13 @@ reviews.sub[18, ]
 ---
 
 ## Our Final SVM
+Useful ~ numChar+numPar+numPunc+numCap+useful.per+average_stars
 
 ---
 
 ## Truth Table
-<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
-<!-- Fri Apr 26 18:56:45 2013 -->
+<!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
+<!-- Sun Apr 28 12:58:53 2013 -->
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Truth Table for the results of our model </CAPTION>
 <TR> <TH>  </TH> <TH> FALSE </TH> <TH> TRUE </TH>  </TR>
@@ -208,8 +236,8 @@ reviews.sub[18, ]
 ---
 
 ## Results
-<!-- html table generated in R 2.15.3 by xtable 1.7-1 package -->
-<!-- Fri Apr 26 18:56:45 2013 -->
+<!-- html table generated in R 3.0.0 by xtable 1.7-1 package -->
+<!-- Sun Apr 28 12:58:53 2013 -->
 <TABLE border=1>
 <CAPTION ALIGN="bottom"> Individual and overall class error rates for our model </CAPTION>
 <TR> <TH>  </TH> <TH> Type </TH> <TH> ErrorRates </TH>  </TR>
